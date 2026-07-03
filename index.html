@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PagCheck - Confirmação Segura de Pagamentos</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { 
+      background: #f5f7fa; 
+      padding: 16px; 
+      max-width: 1350px; /* Largura maior para caber os 4 cards */
+      margin: 0 auto; 
+      min-height: 100vh;
+    }
+
+    /* Cabeçalho */
+    .header { text-align: center; margin-bottom: 16px; }
+    .logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+    .logo-icone { width: 40px; height: 40px; }
+    .logo-texto { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 800; color: #1e293b; }
+    .logo-texto span { color: #2563eb; }
+    .slogan { color: #64748b; font-size: clamp(0.9rem, 1.3vw, 1rem); margin-bottom: 8px; }
+    .aviso-seguranca { 
+      background: #fffbeb; color: #92400e; padding: 8px; border-radius: 6px; 
+      font-size: clamp(0.8rem, 1vw, 0.9rem); border-left: 3px solid #f59e0b;
+      max-width: 600px; margin: 0 auto;
+    }
+
+    /* Área Valor Esperado */
+    .valor-esperado { 
+      background: #e0f2fe; border-radius: 8px; padding: 12px; margin-bottom: 16px;
+      max-width: 600px; margin-left: auto; margin-right: auto;
+    }
+    .valor-esperado .grupo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .valor-esperado input { 
+      flex: 1; min-width: 200px; padding: 8px; border: 1px solid #2563eb; 
+      border-radius: 6px; font-size: 0.95rem;
+    }
+    .valor-esperado button { 
+      padding: 8px 16px; background: #2563eb; color: white; border: none; 
+      border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem;
+    }
+    .aviso-valor { margin-top: 8px; display: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; text-align: center; }
+
+    /* Resumo Rápido */
+    .resumo { 
+      background: white; border-radius: 8px; padding: 12px; margin-bottom: 20px; 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05); max-width: 600px; margin-left: auto; margin-right: auto;
+    }
+    .resumo h4 { color: #1e293b; margin-bottom: 8px; font-size: 1rem; text-align: center; }
+    .resumo-linha { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.95rem; }
+    .resumo-valor-conf { font-weight: bold; color: #16a34a; font-size: 1.05rem; }
+    .resumo-valor-agen { font-weight: bold; color: #f59e0b; font-size: 1.05rem; }
+
+    /* -------------------------- */
+    /* CARDS: TODOS NA MESMA LINHA */
+    /* -------------------------- */
+    .cards { 
+      display: grid; 
+      gap: 16px; 
+      /* Em telas grandes: 4 colunas iguais */
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    /* Ajustes para telas menores */
+    @media (max-width: 1100px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 600px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card { 
+      border-radius: 10px; 
+      padding: 14px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+      transition: all 0.3s ease;
+      height: 100%; /* Todos com mesma altura */
+      min-width: 260px;
+    }
+    .card.ativo { transform: scale(1.02); box-shadow: 0 3px 12px rgba(0,0,0,0.1); }
+
+    /* Cores por tipo */
+    .card-pix { background: #eff6ff; border-left: 4px solid #2563eb; color: #1e3a8a; }
+    .card-credito { background: #faf5ff; border-left: 4px solid #7c3aed; color: #5b21b6; }
+    .card-debito { background: #f0fdf4; border-left: 4px solid #16a34a; color: #15803d; }
+    .card-notas { background: #fffbeb; border-left: 4px solid #f59e0b; color: #92400e; }
+
+    .card-titulo { 
+      display: flex; align-items: center; gap: 8px; 
+      font-size: 1rem; font-weight: bold; margin-bottom: 10px; 
+    }
+    .card-icone { font-size: 1.3rem; }
+
+    /* Status */
+    .status-card { 
+      padding: 14px 8px; 
+      text-align: center; 
+      font-weight: bold; 
+      font-size: 0.95rem; 
+      border-radius: 8px; 
+      margin-bottom: 10px; 
+      background: rgba(255,255,255,0.7);
+    }
+    .status-pix { color: #2563eb; }
+    .status-credito { color: #7c3aed; }
+    .status-debito { color: #16a34a; }
+    .status-notas { color: #f59e0b; }
+
+    /* Dados */
+    .info-linha { 
+      display: flex; justify-content: space-between; padding: 4px 0; 
+      font-size: 0.85rem; border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    .info-linha:last-child { border: none; }
+    .info-valor { font-weight: bold; font-size: 0.95rem; }
+    .alerta-agendado { 
+      background: #fff7ed; border-radius: 6px; padding: 7px; margin-top: 8px; 
+      border-left: 3px solid #f97316; color: #c2410c; font-weight: bold; 
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    .aviso-futuro { 
+      background: rgba(245,158,11,0.1); border-radius: 6px; padding: 6px; 
+      margin-top: 8px; font-size: 0.78rem; text-align: center; 
+    }
+
+    /* Histórico */
+    .historico { margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.15); }
+    .historico-titulo { 
+      font-size: 0.8rem; font-weight: bold; 
+      margin-bottom: 5px; opacity: 0.8; 
+    }
+    .historico-item { 
+      display: flex; justify-content: space-between; padding: 2px 0; 
+      font-size: 0.78rem; opacity: 0.9; 
+    }
+  </style>
+</head>
+<body>
+
+<!-- Cabeçalho Oficial -->
+<div class="header">
+  <div class="logo">
+    <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
+      <circle cx="50" cy="50" r="42" fill="#2563eb" stroke="#93c5fd" stroke-width="4"/>
+      <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1 class="logo-texto">Pag<span>Check</span></h1>
+  </div>
+  <p class="slogan">Confirmação direto do banco — sem golpes</p>
+  <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE quando aparecer "CONFIRMADO"</div>
+</div>
+
+<!-- Área Valor Esperado -->
+<div class="valor-esperado">
+  <div class="grupo">
+    <input type="number" id="valor-esperado" placeholder="Valor da venda R$" step="0.01">
+    <button onclick="definirValorEsperado()">Confirmar</button>
+  </div>
+  <div id="aviso-valor" class="aviso-valor" style="background:#fee2e2;color:#dc2626;"></div>
+</div>
+
+<!-- Resumo Rápido -->
+<div class="resumo">
+  <h4>📊 Resumo do Dia</h4>
+  <div class="resumo-linha"><span>✅ Confirmados:</span><span class="resumo-valor-conf" id="total-conf">R$ 0,00</span></div>
+  <div class="resumo-linha"><span>⏳ Aguardando/Agendados:</span><span class="resumo-valor-agen" id="total-agen">R$ 0,00</span></div>
+</div>
+
+<!-- Cards - Todos na mesma linha em telas grandes -->
+<div class="cards">
+  <!-- PIX -->
+  <div id="card-pix" class="card card-pix">
+    <div class="card-titulo"><span class="card-icone">⚡</span> Pagamento via Pix</div>
+    <div id="conteudo-pix"><div class="status-card status-pix">Aguardando novo pagamento...</div></div>
+    <div class="historico" id="hist-pix"><div class="historico-titulo">Últimas transações</div></div>
+  </div>
+
+  <!-- CRÉDITO -->
+  <div id="card-credito" class="card card-credito">
+    <div class="card-titulo"><span class="card-icone">💳</span> Cartão de Crédito</div>
+    <div id="conteudo-credito"><div class="status-card status-credito">Aguardando venda no crédito...</div></div>
+    <div class="historico" id="hist-credito"><div class="historico-titulo">Últimas transações</div></div>
+  </div>
+
+  <!-- DÉBITO -->
+  <div id="card-debito" class="card card-debito">
+    <div class="card-titulo"><span class="card-icone">💳</span> Cartão de Débito</div>
+    <div id="conteudo-debito"><div class="status-card status-debito">Aguardando venda no débito...</div></div>
+    <div class="historico" id="hist-debito"><div class="historico-titulo">Últimas transações</div></div>
+  </div>
+
+  <!-- NOTAS FÍSICAS -->
+  <div id="card-notas" class="card card-notas">
+    <div class="card-titulo"><span class="card-icone">💵</span> Verificação de Notas</div>
+    <div id="conteudo-notas">
+      <div class="status-card status-notas">Aguardando leitor de notas...</div>
+      <div class="aviso-futuro">🔜 Funcionalidade opcional: basta conectar o equipamento depois</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --------------------------
+// CONFIGURAÇÕES DO SISTEMA
+// --------------------------
+const SUPABASE_URL = "COLOQUE_SUA_URL_SUPABASE_AQUI";
+const SUPABASE_CHAVE = "COLOQUE_SUA_CHAVE_ANONIMA_AQUI";
+const CLIENTE_ID = "ID_DO_ESTABELECIMENTO";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_CHAVE);
+const historico = { PIX:[], CREDITO:[], DEBITO:[] };
+let valorEsperado = null;
+let totalConfirmado = 0;
+let totalAgendado = 0;
+
+// --------------------------
+// FUNÇÃO: DEFINIR VALOR ESPERADO
+// --------------------------
+function definirValorEsperado() {
+  const input = document.getElementById('valor-esperado');
+  valorEsperado = parseFloat(input.value);
+  input.value = '';
+  document.getElementById('aviso-valor').style.display = 'none';
+  if (valorEsperado && valorEsperado > 0) alert(`Valor da venda definido: R$ ${valorEsperado.toFixed(2)}`);
+}
+
+// --------------------------
+// FUNÇÃO: ATUALIZAR CARD DE PAGAMENTO
+// --------------------------
+function atualizarCard(transacao) {
+  const tipo = transacao.tipo;
+  const tipoMin = tipo.toLowerCase();
+  const conteudoEl = document.getElementById(`conteudo-${tipoMin}`);
+  const cardEl = document.getElementById(`card-${tipoMin}`);
+
+  cardEl.classList.add('ativo');
+  setTimeout(() => cardEl.classList.remove('ativo'), 2500);
+
+  // Alerta de valor diferente
+  if (valorEsperado && Math.abs(transacao.valor - valorEsperado) > 0.01) {
+    document.getElementById('aviso-valor').style.display = 'block';
+    document.getElementById('aviso-valor').textContent = `❌ VALOR DIFERENTE! Esperado: R$ ${valorEsperado.toFixed(2)} | Recebido: R$ ${transacao.valor.toFixed(2)}`;
+    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
+  } else {
+    document.getElementById('aviso-valor').style.display = 'none';
+    valorEsperado = null;
+  }
+
+  // Status e alertas
+  let corStatus, textoStatus, avisoExtra = "";
+  if (transacao.status === 'AGENDADO') {
+    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
+    corStatus = '#f59e0b';
+    textoStatus = '⏳ PIX AGENDADO — NÃO LIBERE AINDA!';
+    avisoExtra = `<div class="alerta-agendado">⚠️ Esse pagamento ainda não caiu! Pode ser cancelado a qualquer momento.</div>`;
+    totalAgendado += Number(transacao.valor);
+  } else if (transacao.status === 'RECEBIDO' || transacao.status === 'APROVADA') {
+    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3').play().catch(()=>{});
+    corStatus = '#16a34a';
+    textoStatus = '✅ PAGAMENTO CONFIRMADO — LIBERE O PRODUTO';
+    totalConfirmado += Number(transacao.valor);
+  } else if (transacao.status === 'CANCELADO') {
+    corStatus = '#ef4444';
+    textoStatus = '❌ AGENDAMENTO CANCELADO';
+    totalAgendado = Math.max(0, totalAgendado - Number(transacao.valor));
+  } else {
+    corStatus = '#64748b';
+    textoStatus = transacao.status;
+  }
+
+  // Atualiza resumo
+  document.getElementById('total-conf').textContent = `R$ ${totalConfirmado.toFixed(2)}`;
+  document.getElementById('total-agen').textContent = `R$ ${totalAgendado.toFixed(2)}`;
+
+  // Renderiza dados
+  conteudoEl.innerHTML = `
+    <div class="info-linha"><span>Valor:</span><span class="info-valor">R$ ${Number(transacao.valor).toFixed(2)}</span></div>
+    <div class="info-linha"><span>Horário:</span><span>${new Date(transacao.data_hora).toLocaleTimeString('pt-BR')}</span></div>
+    ${transacao.bandeira ? `<div class="info-linha"><span>Bandeira:</span><span>${transacao.bandeira}</span></div>` : ''}
+    ${transacao.parcelas > 1 ? `<div class="info-linha"><span>Parcelas:</span><span>${transacao.parcelas}x</span></div>` : ''}
+    <div class="info-linha" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.1);">
+      <span>Status:</span><span style="color:${corStatus};font-weight:bold;">${textoStatus}</span>
+    </div>
+    ${avisoExtra}
+  `;
+
+  // Atualiza histórico
+  historico[tipo].unshift(transacao);
+  if (historico[tipo].length > 3) historico[tipo].pop();
+  const histEl = document.getElementById(`hist-${tipoMin}`);
+  histEl.innerHTML = '<div class="historico-titulo">Últimas transações</div>';
+  historico[tipo].forEach(item => {
+    histEl.innerHTML += `<div class="historico-item"><span>${new Date(item.data_hora).toLocaleTimeString('pt-BR')}</span><span>R$ ${Number(item.valor).toFixed(2)}</span></div>`;
+  });
+}
+
+// --------------------------
+// FUNÇÃO: VERIFICAÇÃO DE NOTAS
+// --------------------------
+function atualizarVerificacaoNotas(dados) {
+  const conteudoEl = document.getElementById('conteudo-notas');
+  const cardEl = document.getElementById('card-notas');
+
+  cardEl.classList.add('ativo');
+  setTimeout(() => cardEl.classList.remove('ativo'), 2500);
+
+  let corResultado, textoResultado;
+  if (dados.resultado === 'AUTENTICA') {
+    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3').play().catch(()=>{});
+    corResultado = '#16a34a';
+    textoResultado = '✅ NOTA AUTÊNTICA';
+  } else if (dados.resultado === 'SUSPEITA') {
+    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
+    corResultado = '#f59e0b';
+    textoResultado = '⚠️ SUSPEITA — Confira manualmente';
+  } else {
+    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-90s.mp3').play().catch(()=>{});
+    corResultado = '#ef4444';
+    textoResultado = '❌ FALSA — NÃO ACEITE!';
+  }
+
+  conteudoEl.innerHTML = `
+    <div class="info-linha"><span>Valor da nota:</span><span class="info-valor">R$ ${Number(dados.valor_nota).toFixed(2)}</span></div>
+    ${dados.numero_serie ? `<div class="info-linha"><span>Nº Série:</span><span>${dados.numero_serie}</span></div>` : ''}
+    <div class="info-linha" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.1);">
+      <span>Resultado:</span><span style="color:${corResultado};font-weight:bold;">${textoResultado}</span>
+    </div>
+  `;
+}
+
+// --------------------------
+// ESCUTA EM TEMPO REAL
+// --------------------------
+supabase
+  .channel('pagcheck-completo')
+  .on('postgres_changes', { event:'INSERT', table:'transacoes_gerais', filter:`cliente_id=eq.${CLIENTE_ID}` }, res => atualizarCard(res.new))
+  .on('postgres_changes', { event:'UPDATE', table:'transacoes_gerais', filter:`cliente_id=eq.${CLIENTE_ID}` }, res => atualizarCard(res.new))
+  .on('postgres_changes', { event:'INSERT', table:'verificacao_notas', filter:`cliente_id=eq.${CLIENTE_ID}` }, res => atualizarVerificacaoNotas(res.new))
+  .subscribe();
+</script>
+</body>
+</html>
