@@ -9,7 +9,6 @@
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     body { background: #f5f7fa; padding: 16px; max-width: 1350px; margin: 0 auto; min-height: 100vh; }
 
-    /* TELA DE ACESSO DO USUÁRIO */
     .tela-acesso {
       max-width: 420px; margin: 80px auto; background: white;
       padding: 24px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -26,7 +25,6 @@
     .tela-acesso button:hover { background: #1d4ed8; }
     .aviso { color: #dc2626; text-align: center; margin-top: 10px; display: none; }
 
-    /* Cabeçalho */
     .header { text-align: center; margin-bottom: 16px; position: relative; }
     .btn-sair {
       position: absolute; right: 0; top: 0; background: #ef4444; color: white;
@@ -43,7 +41,6 @@
       max-width: 600px; margin: 0 auto;
     }
 
-    /* Valor Esperado */
     .valor-esperado {
       background: #e0f2fe; border-radius: 8px; padding: 12px; margin-bottom: 16px;
       max-width: 600px; margin: 0 auto;
@@ -53,7 +50,6 @@
     .valor-esperado button { padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
     .aviso-valor { margin-top: 8px; display: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; text-align: center; }
 
-    /* Resumo */
     .resumo {
       background: white; border-radius: 8px; padding: 16px; margin-bottom: 20px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto;
@@ -65,7 +61,6 @@
     .resumo-valor-conf { font-weight: bold; color: #16a34a; }
     .resumo-valor-agen { font-weight: bold; color: #f59e0b; }
 
-    /* Modal Relatório */
     .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
     .modal-conteudo { background: white; margin: 5% auto; padding: 20px; border-radius: 10px; width: 95%; max-width: 700px; }
     .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
@@ -76,7 +71,6 @@
     .total-geral { margin-top: 15px; text-align: right; font-size: 1rem; font-weight: bold; }
     .btn-baixar { margin-top: 15px; padding: 10px 18px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-    /* Cards */
     .cards { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); }
     @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
@@ -96,16 +90,14 @@
 </head>
 <body>
 
-<!-- TELA DE LOGIN DO USUÁRIO -->
 <div id="telaAcesso" class="tela-acesso">
   <h2>🔐 Acessar PagCheck</h2>
   <input type="email" id="email" placeholder="Seu e-mail">
-  <input type="password" id="senha" placeholder="Sua senha">
+  <input type="password" id="senha" placeholder="Sua chave">
   <button onclick="entrar()">Entrar</button>
   <div id="aviso" class="aviso"></div>
 </div>
 
-<!-- PAINEL PRINCIPAL -->
 <div id="painel" class="painel-principal">
   <div class="header">
     <button class="btn-sair" onclick="sair()">Sair</button>
@@ -187,15 +179,6 @@ let CLIENTE_ID = null;
 let valorEsperado = null;
 let transacoes = [];
 
-// ⌨️ ATALHO: Ctrl X abre a Área de Administração
-document.addEventListener('keydown', function(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
-    e.preventDefault();
-    window.open('cadastro.html', '_blank');
-  }
-});
-
-// LOGIN DO USUÁRIO
 async function checarSessao() {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
@@ -211,7 +194,7 @@ async function entrar() {
   aviso.style.display = 'none';
 
   const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-  if (error) { aviso.textContent = "❌ Dados inválidos"; aviso.style.display = 'block'; return; }
+  if (error) { aviso.textContent = "❌ E-mail ou chave inválidos"; aviso.style.display = 'block'; return; }
 
   await pegarClienteId();
   mostrarPainel();
@@ -230,7 +213,6 @@ function mostrarPainel() {
   iniciarTempoReal();
 }
 
-// BUSCA AUTOMÁTICA DO ID APÓS LOGIN
 async function pegarClienteId() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -238,7 +220,6 @@ async function pegarClienteId() {
   CLIENTE_ID = data.cliente_id;
 }
 
-// DEMAIS FUNÇÕES DO SISTEMA
 function definirValor() {
   valorEsperado = parseFloat(document.getElementById('valorEsperado').value);
   document.getElementById('valorEsperado').value = '';
