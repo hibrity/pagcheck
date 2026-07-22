@@ -9,7 +9,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     body { background: #f5f7fa; padding: 16px; max-width: 1350px; margin: 0 auto; min-height: 100vh; }
 
-    /* TELA DE ACESSO */
+    /* TELA DE ACESSO DO USUÁRIO */
     .tela-acesso {
       max-width: 420px; margin: 80px auto; background: white;
       padding: 24px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -96,6 +96,7 @@
 </head>
 <body>
 
+<!-- TELA DE LOGIN DO USUÁRIO -->
 <div id="telaAcesso" class="tela-acesso">
   <h2>🔐 Acessar PagCheck</h2>
   <input type="email" id="email" placeholder="Seu e-mail">
@@ -104,6 +105,7 @@
   <div id="aviso" class="aviso"></div>
 </div>
 
+<!-- PAINEL PRINCIPAL -->
 <div id="painel" class="painel-principal">
   <div class="header">
     <button class="btn-sair" onclick="sair()">Sair</button>
@@ -185,9 +187,15 @@ let CLIENTE_ID = null;
 let valorEsperado = null;
 let transacoes = [];
 
-// --------------------------
-// LOGIN AUTOMÁTICO
-// --------------------------
+// ⌨️ ATALHO: FUNCIONA SEMPRE — MESMO SEM LOGAR
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+    e.preventDefault();
+    window.open('cadastro.html', '_blank');
+  }
+});
+
+// LOGIN DO USUÁRIO
 async function checarSessao() {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
@@ -222,9 +230,7 @@ function mostrarPainel() {
   iniciarTempoReal();
 }
 
-// --------------------------
-// BUSCA AUTOMÁTICA DO ID
-// --------------------------
+// BUSCA AUTOMÁTICA DO ID APÓS LOGIN
 async function pegarClienteId() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -232,9 +238,7 @@ async function pegarClienteId() {
   CLIENTE_ID = data.cliente_id;
 }
 
-// --------------------------
-// FUNÇÕES GERAIS
-// --------------------------
+// DEMAIS FUNÇÕES DO SISTEMA
 function definirValor() {
   valorEsperado = parseFloat(document.getElementById('valorEsperado').value);
   document.getElementById('valorEsperado').value = '';
@@ -325,14 +329,6 @@ function iniciarTempoReal(){
   .on('postgres_changes',{event:'INSERT',table:'verificacao_notas',filter:`cliente_id=eq.${CLIENTE_ID}`},r=>atualizarNota(r.new))
   .subscribe();
 }
-
-// ⌨️ ATALHO: Ctrl + F abre a Área de Administração
-document.addEventListener('keydown', function(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
-    e.preventDefault();
-    window.open('cadastro.html', '_blank');
-  }
-});
 
 checarSessao();
 </script>
