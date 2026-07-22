@@ -3,459 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PagCheck - Confirmação Segura de Pagamentos</title>
+  <title>PagCheck - Login 100% Direto</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { background: #f5f7fa; padding: 16px; max-width: 1350px; margin: 0 auto; min-height: 100vh; }
-
-    /* TELA DE ACESSO */
-    .tela-acesso {
-      max-width: 420px; margin: 80px auto; background: white;
-      padding: 24px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    .tela-acesso h2 { text-align: center; color: #1e293b; margin-bottom: 20px; }
-    .tela-acesso input {
-      width: 100%; padding: 12px; margin-bottom: 12px;
-      border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem;
-    }
-    .tela-acesso button {
-      width: 100%; padding: 12px; background: #2563eb; color: white;
-      border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;
-      margin-bottom:10px;
-    }
-    .tela-acesso button:disabled { background: #93c5fd; cursor: not-allowed; }
-    .aviso { color: #dc2626; text-align: center; margin-top: 12px; display: none; padding: 10px; border-radius: 6px; background: #fef2f2; font-weight: 500; }
-    .sucesso { color: #16a34a; text-align: center; margin-top: 12px; display: none; padding: 10px; border-radius: 6px; background: #f0fdf4; font-weight: 500; }
-    .troca-form { text-align:center; margin-top:12px; color:#2563eb; cursor:pointer; font-size:0.9rem; }
-
-    /* PAINEL PRINCIPAL */
-    .painel-principal { display: none; }
-    .header {
-      display:flex; justify-content:space-between; align-items:center;
-      text-align: center; margin-bottom: 16px; position: relative; flex-wrap:wrap; gap:10px;
-    }
-    .btn-sair {
-      background: #ef4444; color: white; border: none; padding: 8px 14px;
-      border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight:bold;
-    }
-    .logo { display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .logo-icone { width: 40px; height: 40px; }
-    .logo-texto { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 800; color: #1e293b; }
-    .logo-texto span { color: #2563eb; }
-    .slogan { width:100%; color: #64748b; font-size: clamp(0.9rem, 1.3vw, 1rem); }
-    .aviso-seguranca {
-      background: #fffbeb; color: #92400e; padding: 8px; border-radius: 6px;
-      font-size: clamp(0.8rem, 1vw, 0.9rem); border-left: 3px solid #f59e0b;
-      max-width: 600px; margin: 0 auto 20px;
-    }
-
-    .valor-esperado {
-      background: #e0f2fe; border-radius: 8px; padding: 12px; margin-bottom: 16px;
-      max-width: 600px; margin: 0 auto 20px;
-    }
-    .grupo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
-    .valor-esperado input { flex: 1; min-width: 200px; padding: 8px; border: 1px solid #2563eb; border-radius: 6px; font-size: 0.95rem; }
-    .valor-esperado button { padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
-    .aviso-valor { margin-top: 8px; display: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; text-align: center; }
-
-    .resumo {
-      background: white; border-radius: 8px; padding: 16px; margin-bottom: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto 20px;
-    }
-    .resumo-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap:wrap; gap:10px; }
-    .btn-relatorio { padding: 8px 14px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
-    .resumo-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-    .resumo-linha { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.95rem; border-bottom: 1px solid #f1f5f9; }
-    .resumo-valor-conf { font-weight: bold; color: #16a34a; }
-    .resumo-valor-agen { font-weight: bold; color: #f59e0b; }
-
-    .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-    .modal-conteudo { background: white; margin: 5% auto; padding: 20px; border-radius: 10px; width: 95%; max-width: 700px; }
-    .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-    .fechar { font-size: 24px; font-weight: bold; cursor: pointer; color: #aaa; }
-    .tabela-relatorio { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-    .tabela-relatorio th, .tabela-relatorio td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
-    .tabela-relatorio th { background: #f8fafc; font-weight: bold; }
-    .total-geral { margin-top: 15px; text-align: right; font-size: 1rem; font-weight: bold; }
-    .btn-baixar { margin-top: 15px; padding: 10px 18px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
-    .cards { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); }
-    @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
-    .card { border-radius: 10px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.3s ease; }
-    .card.ativo { transform: scale(1.02); }
-    .card-pix { background: #eff6ff; border-left: 4px solid #2563eb; }
-    .card-credito { background: #faf5ff; border-left: 4px solid #7c3aed; }
-    .card-debito { background: #f0fdf4; border-left: 4px solid #16a34a; }
-    .card-notas { background: #fffbeb; border-left: 4px solid #f59e0b; }
-    .card-titulo { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: bold; margin-bottom: 10px; }
-    .info-linha { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(0,0,0,0.08); }
-    .info-linha:last-child { border: none; }
-    .info-valor { font-weight: bold; font-size: 0.95rem; }
-    .alerta-agendado { background: #fff7ed; border-radius: 6px; padding: 7px; margin-top: 8px; border-left: 3px solid #f97316; color: #c2410c; font-weight: bold; font-size: 0.8rem; text-align: center; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif; }
+    body { background:#f5f7fa; padding:16px; }
+    .tela-acesso { max-width:420px; margin:80px auto; background:white; padding:24px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.08); }
+    h2 { text-align:center; margin-bottom:20px; color:#1e293b; }
+    input { width:100%; padding:12px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:6px; font-size:1rem; }
+    button { width:100%; padding:12px; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:1rem; margin-bottom:10px; }
+    .aviso { display:none; padding:10px; border-radius:6px; text-align:center; margin-top:10px; }
+    .erro { background:#fef2f2; color:#dc2626; }
+    .sucesso { background:#f0fdf4; color:#16a34a; }
+    .troca-form { text-align:center; color:#2563eb; cursor:pointer; font-size:.9rem; margin-top:10px; }
+    .painel-principal { display:none; max-width:1200px; margin:0 auto; }
+    .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .btn-sair { background:#ef4444; width:auto; padding:8px 16px; }
   </style>
 </head>
 <body>
 
-<!-- TELA DE ACESSO -->
 <div id="telaAcesso" class="tela-acesso">
   <div id="formLogin">
-    <h2>🔐 Entrar</h2>
-    <input type="email" id="emailLogin" placeholder="Seu e-mail">
-    <input type="password" id="senhaLogin" placeholder="Sua senha">
-    <button id="btnLogin">Acessar</button>
-    <div id="avisoLogin" class="aviso"></div>
-    <div class="troca-form" onclick="mostrarCadastro()">Não tem conta? Cadastre-se</div>
+    <h2>Entrar</h2>
+    <input type="email" id="emailLogin" placeholder="E-mail">
+    <input type="password" id="senhaLogin" placeholder="Senha">
+    <!-- AQUI: onclick DIRETO -->
+    <button onclick="fazerLogin()">Entrar</button>
+    <div id="avisoLogin" class="aviso erro"></div>
+    <div class="troca-form" onclick="mostrarCadastro()">Cadastre-se</div>
   </div>
 
   <div id="formCadastro" style="display:none;">
-    <h2>📝 Criar Conta</h2>
-    <input type="text" id="nomeCad" placeholder="Nome / Empresa">
-    <input type="email" id="emailCad" placeholder="Seu e-mail">
-    <input type="password" id="senhaCad" placeholder="Criar senha forte">
-    <button id="btnCadastro">Cadastrar</button>
-    <div id="avisoCad" class="aviso"></div>
-    <div class="troca-form" onclick="mostrarLogin()">Já tem conta? Fazer login</div>
+    <h2>Cadastrar</h2>
+    <input type="text" id="nomeCad" placeholder="Nome">
+    <input type="email" id="emailCad" placeholder="E-mail">
+    <input type="password" id="senhaCad" placeholder="Senha">
+    <!-- AQUI: onclick DIRETO -->
+    <button onclick="fazerCadastro()">Cadastrar</button>
+    <div id="avisoCad" class="aviso erro"></div>
+    <div class="troca-form" onclick="mostrarLogin()">Já tenho conta</div>
   </div>
 </div>
 
-<!-- PAINEL PRINCIPAL -->
 <div id="painel" class="painel-principal">
   <div class="header">
-    <div class="logo">
-      <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
-        <circle cx="50" cy="50" r="42" fill="#2563eb" stroke="#93c5fd" stroke-width="4"/>
-        <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <h1 class="logo-texto">Pag<span>Check</span></h1>
-    </div>
+    <h1>PagCheck</h1>
     <button class="btn-sair" onclick="sair()">Sair</button>
-    <p class="slogan">Confirmação direto do banco — sem golpes</p>
   </div>
-  <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE quando aparecer "CONFIRMADO"</div>
-
-  <div class="valor-esperado">
-    <div class="grupo">
-      <input type="number" id="valor-esperado" placeholder="Valor da venda R$" step="0.01">
-      <button onclick="definirValorEsperado()">Confirmar</button>
-    </div>
-    <div id="aviso-valor" class="aviso-valor" style="background:#fee2e2;color:#dc2626;"></div>
-  </div>
-
-  <div class="resumo">
-    <div class="resumo-cabecalho">
-      <h4>📊 Resumo do Dia</h4>
-      <button class="btn-relatorio" onclick="abrirRelatorio()">📄 Ver Relatório Completo</button>
-    </div>
-    <div class="resumo-grade">
-      <div class="resumo-linha"><span>Pix Confirmado:</span><span class="resumo-valor-conf" id="res-pix-conf">R$ 0,00</span></div>
-      <div class="resumo-linha"><span>Pix Agendado:</span><span class="resumo-valor-agen" id="res-pix-agen">R$ 0,00</span></div>
-      <div class="resumo-linha"><span>Crédito:</span><span class="resumo-valor-conf" id="res-credito">R$ 0,00</span></div>
-      <div class="resumo-linha"><span>Débito:</span><span class="resumo-valor-conf" id="res-debito">R$ 0,00</span></div>
-      <div class="resumo-linha"><span>Total Confirmado:</span><span class="resumo-valor-conf" id="total-geral-conf">R$ 0,00</span></div>
-      <div class="resumo-linha"><span>Total Pendente:</span><span class="resumo-valor-agen" id="total-geral-agen">R$ 0,00</span></div>
-    </div>
-  </div>
-
-  <div id="modalRelatorio" class="modal">
-    <div class="modal-conteudo">
-      <div class="modal-cabecalho">
-        <h3>📋 Relatório Diário - <span id="data-relatorio"></span></h3>
-        <span class="fechar" onclick="fecharRelatorio()">&times;</span>
-      </div>
-      <table class="tabela-relatorio" id="tabelaRelatorio">
-        <thead>
-          <tr>
-            <th>Horário</th>
-            <th>Tipo</th>
-            <th>Valor</th>
-            <th>Status</th>
-            <th>Detalhes</th>
-          </tr>
-        </thead>
-        <tbody id="corpoRelatorio"></tbody>
-      </table>
-      <div class="total-geral">Total Geral do Dia: <span id="valorTotalRelatorio">R$ 0,00</span></div>
-      <button class="btn-baixar" onclick="baixarRelatorioCSV()">💾 Baixar como Planilha CSV</button>
-    </div>
-  </div>
-
-  <div class="cards">
-    <div id="card-pix" class="card card-pix">
-      <div class="card-titulo"><span class="card-icone">⚡</span> Pagamento via Pix</div>
-      <div id="conteudo-pix"><div class="status-card status-pix">Aguardando novo pagamento...</div></div>
-      <div class="historico" id="hist-pix"><div class="historico-titulo">Últimas transações</div></div>
-    </div>
-    <div id="card-credito" class="card card-credito">
-      <div class="card-titulo"><span class="card-icone">💳</span> Cartão de Crédito</div>
-      <div id="conteudo-credito"><div class="status-card status-credito">Aguardando venda no crédito...</div></div>
-      <div class="historico" id="hist-credito"><div class="historico-titulo">Últimas transações</div></div>
-    </div>
-    <div id="card-debito" class="card card-debito">
-      <div class="card-titulo"><span class="card-icone">💳</span> Cartão de Débito</div>
-      <div id="conteudo-debito"><div class="status-card status-debito">Aguardando venda no débito...</div></div>
-      <div class="historico" id="hist-debito"><div class="historico-titulo">Últimas transações</div></div>
-    </div>
-    <div id="card-notas" class="card card-notas">
-      <div class="card-titulo"><span class="card-icone">💵</span> Verificação de Notas</div>
-      <div id="conteudo-notas">
-        <div class="status-card status-notas">Aguardando leitor de notas...</div>
-        <div class="aviso-futuro">🔜 Funcionalidade opcional</div>
-      </div>
-    </div>
-  </div>
+  <p>Painel funcionando ✅</p>
 </div>
 
 <script>
-// --------------------------
-// CONFIGURAÇÕES SUPABASE
-// --------------------------
+// Configuração
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
 const SUPABASE_CHAVE = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_CHAVE);
-
 let CLIENTE_ID = null;
-let valorEsperado = null;
-let transacoesDoDia = [];
 
-// --------------------------
-// TROCA TELAS
-// --------------------------
+// Alternar telas
 function mostrarCadastro() {
   document.getElementById('formLogin').style.display = 'none';
   document.getElementById('formCadastro').style.display = 'block';
-  limparAvisos();
 }
 function mostrarLogin() {
   document.getElementById('formCadastro').style.display = 'none';
   document.getElementById('formLogin').style.display = 'block';
-  limparAvisos();
 }
-function limparAvisos() {
-  const avisos = document.querySelectorAll('.aviso');
-  avisos.forEach(el => { el.textContent = ''; el.style.display = 'none'; });
-}
-
-// --------------------------
-// PEGA/CRIA CLIENTE_ID
-// --------------------------
-async function pegarClienteId(user) {
-  try {
-    let { data } = await supabase
-      .from('estabelecimentos')
-      .select('cliente_id')
-      .eq('usuario_id', user.id)
-      .single();
-
-    if (!data) {
-      const { data:novo } = await supabase
-        .from('estabelecimentos')
-        .insert([{
-          usuario_id: user.id,
-          cliente_id: user.id,
-          nome: user.email
-        }])
-        .select()
-        .single();
-      return novo.cliente_id;
-    }
-    return data.cliente_id;
-  } catch(e) {
-    console.error(e);
-    return null;
-  }
+function avisar(id, texto, tipo='erro') {
+  const el = document.getElementById(id);
+  el.textContent = texto;
+  el.className = 'aviso ' + tipo;
+  el.style.display = 'block';
 }
 
-// --------------------------
-// LOGIN E CADASTRO
-// --------------------------
-document.addEventListener('click', async (e) => {
-  if (e.target.id === 'btnLogin') {
-    e.preventDefault();
-    const email = document.getElementById('emailLogin').value.trim();
-    const senha = document.getElementById('senhaLogin').value;
-    const aviso = document.getElementById('avisoLogin');
+// Login — FUNÇÃO CHAMADA DIRETO DO BOTÃO
+async function fazerLogin() {
+  const email = document.getElementById('emailLogin').value.trim();
+  const senha = document.getElementById('senhaLogin').value;
+  if (!email || !senha) return avisar('avisoLogin', 'Preencha tudo');
+  
+  avisar('avisoLogin', 'Aguarde...', 'sucesso');
+  const {data, error} = await supabase.auth.signInWithPassword({email, password: senha});
+  
+  if (error) return avisar('avisoLogin', 'Erro: ' + error.message);
+  await pegarCliente(data.user);
+  abrirPainel();
+}
 
-    if (!email || !senha) { aviso.textContent = 'Preencha todos os campos'; aviso.style.display = 'block'; return; }
+// Cadastro — FUNÇÃO CHAMADA DIRETO DO BOTÃO
+async function fazerCadastro() {
+  const nome = document.getElementById('nomeCad').value.trim();
+  const email = document.getElementById('emailCad').value.trim();
+  const senha = document.getElementById('senhaCad').value;
+  if (!nome || !email || !senha) return avisar('avisoCad', 'Preencha tudo');
+  if (senha.length < 6) return avisar('avisoCad', 'Senha mínima 6 caracteres');
 
-    aviso.style.display = 'none';
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
-    
-    if (error) { aviso.textContent = 'Erro: ' + error.message; aviso.style.display = 'block'; return; }
-    
-    CLIENTE_ID = await pegarClienteId(data.user);
-    if (CLIENTE_ID) abrirPainel();
-  }
+  avisar('avisoCad', 'Criando conta...', 'sucesso');
+  const {data, error} = await supabase.auth.signUp({email, password: senha});
+  
+  if (error) return avisar('avisoCad', 'Erro: ' + error.message);
+  await pegarCliente(data.user, nome);
+  abrirPainel();
+}
 
-  if (e.target.id === 'btnCadastro') {
-    e.preventDefault();
-    const nome = document.getElementById('nomeCad').value.trim();
-    const email = document.getElementById('emailCad').value.trim();
-    const senha = document.getElementById('senhaCad').value;
-    const aviso = document.getElementById('avisoCad');
+// Pegar/criar cliente
+async function pegarCliente(usuario, nome='Sem Nome') {
+  const {data} = await supabase.from('estabelecimentos').select('cliente_id').eq('usuario_id', usuario.id).single();
+  if (data) return CLIENTE_ID = data.cliente_id;
+  const {data:novo} = await supabase.from('estabelecimentos').insert({usuario_id:usuario.id, cliente_id:usuario.id, nome:nome}).select();
+  CLIENTE_ID = novo.cliente_id;
+}
 
-    if (!nome || !email || !senha) { aviso.textContent = 'Preencha todos os campos'; aviso.style.display = 'block'; return; }
-    if (senha.length < 6) { aviso.textContent = 'Senha mínima 6 caracteres'; aviso.style.display = 'block'; return; }
-
-    aviso.style.display = 'none';
-    const { data, error } = await supabase.auth.signUp({ email, password: senha });
-    
-    if (error) { aviso.textContent = 'Erro: ' + error.message; aviso.style.display = 'block'; return; }
-
-    aviso.textContent = '✅ Conta criada!';
-    aviso.style.display = 'block';
-    CLIENTE_ID = await pegarClienteId(data.user);
-    setTimeout(() => abrirPainel(), 800);
-  }
-});
-
-// --------------------------
-// ABRIR/FECHAR
-// --------------------------
 function abrirPainel() {
   document.getElementById('telaAcesso').style.display = 'none';
   document.getElementById('painel').style.display = 'block';
-  iniciarEscuta();
 }
 async function sair() {
   await supabase.auth.signOut();
   CLIENTE_ID = null;
   document.getElementById('telaAcesso').style.display = 'block';
   document.getElementById('painel').style.display = 'none';
-  mostrarLogin();
 }
 
-// Verifica sessão salva
+// Verifica se já logado ao carregar
 document.addEventListener('DOMContentLoaded', async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {data:{session}} = await supabase.auth.getSession();
   if (session) {
-    CLIENTE_ID = await pegarClienteId(session.user);
-    if (CLIENTE_ID) abrirPainel();
+    await pegarCliente(session.user);
+    abrirPainel();
   }
 });
-
-// --------------------------
-// DEMAIS FUNÇÕES DO PAINEL
-// --------------------------
-function definirValorEsperado() {
-  const input = document.getElementById('valor-esperado');
-  valorEsperado = parseFloat(input.value);
-  input.value = '';
-  document.getElementById('aviso-valor').style.display = 'none';
-  if (valorEsperado && valorEsperado > 0) alert(`Valor da venda definido: R$ ${valorEsperado.toFixed(2)}`);
-}
-function atualizarResumo() {
-  let pixConf = 0, pixAgen = 0, credito = 0, debito = 0;
-  transacoesDoDia.forEach(t => {
-    const valor = Number(t.valor);
-    if (t.tipo === 'PIX') t.status === 'RECEBIDO' ? pixConf += valor : pixAgen += valor;
-    else if (t.tipo === 'CREDITO' && t.status === 'APROVADA') credito += valor;
-    else if (t.tipo === 'DEBITO' && t.status === 'APROVADA') debito += valor;
-  });
-  const totalConf = pixConf + credito + debito;
-  const totalAgen = pixAgen;
-  document.getElementById('res-pix-conf').textContent = `R$ ${pixConf.toFixed(2)}`;
-  document.getElementById('res-pix-agen').textContent = `R$ ${pixAgen.toFixed(2)}`;
-  document.getElementById('res-credito').textContent = `R$ ${credito.toFixed(2)}`;
-  document.getElementById('res-debito').textContent = `R$ ${debito.toFixed(2)}`;
-  document.getElementById('total-geral-conf').textContent = `R$ ${totalConf.toFixed(2)}`;
-  document.getElementById('total-geral-agen').textContent = `R$ ${totalAgen.toFixed(2)}`;
-}
-function abrirRelatorio() {
-  const hoje = new Date().toLocaleDateString('pt-BR');
-  document.getElementById('data-relatorio').textContent = hoje;
-  const corpo = document.getElementById('corpoRelatorio');
-  corpo.innerHTML = '';
-  let total = 0;
-  transacoesDoDia.forEach(t => {
-    const valor = Number(t.valor); total += valor;
-    const hora = new Date(t.data_hora).toLocaleTimeString('pt-BR');
-    const detalhes = t.bandeira ? `${t.bandeira} ${t.parcelas > 1 ? `(${t.parcelas}x)` : ''}` : '-';
-    corpo.innerHTML += `<tr><td>${hora}</td><td>${t.tipo}</td><td>R$ ${valor.toFixed(2)}</td><td>${t.status}</td><td>${detalhes}</td></tr>`;
-  });
-  document.getElementById('valorTotalRelatorio').textContent = `R$ ${total.toFixed(2)}`;
-  document.getElementById('modalRelatorio').style.display = 'block';
-}
-function fecharRelatorio() { document.getElementById('modalRelatorio').style.display = 'none'; }
-function baixarRelatorioCSV() {
-  let csv = 'Horário,Tipo,Valor,Status,Detalhes\n';
-  transacoesDoDia.forEach(t => {
-    const hora = new Date(t.data_hora).toLocaleTimeString('pt-BR');
-    const valor = `R$ ${Number(t.valor).toFixed(2)}`;
-    const detalhes = t.bandeira ? `${t.bandeira} ${t.parcelas > 1 ? `(${t.parcelas}x)` : ''}` : '-';
-    csv += `"${hora}","${t.tipo}","${valor}","${t.status}","${detalhes}"\n`;
-  });
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `Relatorio_PagCheck_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
-  link.click();
-}
-function atualizarCard(transacao) {
-  const tipo = transacao.tipo.toLowerCase();
-  const conteudoEl = document.getElementById(`conteudo-${tipo}`);
-  const cardEl = document.getElementById(`card-${tipo}`);
-  cardEl.classList.add('ativo'); setTimeout(() => cardEl.classList.remove('ativo'), 2500);
-  const idx = transacoesDoDia.findIndex(t => t.id === transacao.id);
-  idx >=0 ? transacoesDoDia[idx] = transacao : transacoesDoDia.unshift(transacao);
-  if (valorEsperado && Math.abs(transacao.valor - valorEsperado) > 0.01) {
-    document.getElementById('aviso-valor').style.display = 'block';
-    document.getElementById('aviso-valor').textContent = `❌ Valor diferente! Esperado R$ ${valorEsperado.toFixed(2)}`;
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
-  } else { document.getElementById('aviso-valor').style.display = 'none'; valorEsperado = null; }
-  let corStatus, textoStatus, avisoExtra = '';
-  if (transacao.status === 'AGENDADO') {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
-    corStatus = '#f59e0b'; textoStatus = '⏳ PIX AGENDADO — NÃO LIBERE!';
-    avisoExtra = `<div class="alerta-agendado">⚠️ Pode cancelar</div>`;
-  } else if (['RECEBIDO','APROVADA'].includes(transacao.status)) {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3').play().catch(()=>{});
-    corStatus = '#16a34a'; textoStatus = '✅ PAGAMENTO CONFIRMADO';
-  } else { corStatus = '#ef4444'; textoStatus = '❌ CANCELADO'; }
-  conteudoEl.innerHTML = `
-    <div class="info-linha"><span>Valor:</span><span class="info-valor">R$ ${Number(transacao.valor).toFixed(2)}</span></div>
-    <div class="info-linha"><span>Horário:</span><span>${new Date(transacao.data_hora).toLocaleTimeString('pt-BR')}</span></div>
-    ${transacao.bandeira ? `<div class="info-linha"><span>Bandeira:</span><span>${transacao.bandeira}</span></div>` : ''}
-    ${transacao.parcelas>1 ? `<div class="info-linha"><span>Parcelas:</span><span>${transacao.parcelas}x</span></div>` : ''}
-    <div class="info-linha" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.1);">
-      <span>Status:</span><span style="color:${corStatus};font-weight:bold;">${textoStatus}</span>
-    </div>${avisoExtra}
-  `;
-  atualizarResumo();
-}
-function atualizarVerificacaoNotas(dados) {
-  const conteudoEl = document.getElementById('conteudo-notas');
-  const cardEl = document.getElementById('card-notas');
-  cardEl.classList.add('ativo'); setTimeout(() => cardEl.classList.remove('ativo'), 2500);
-  let corResultado, textoResultado;
-  if (dados.resultado === 'AUTENTICA') {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3').play().catch(()=>{});
-    corResultado='#16a34a'; textoResultado='✅ NOTA AUTÊNTICA';
-  } else if (dados.resultado === 'SUSPEITA') {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
-    corResultado='#f59e0b'; textoResultado='⚠️ SUSPEITA';
-  } else {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-90s.mp3').play().catch(()=>{});
-    corResultado='#ef4444'; textoResultado='❌ FALSA';
-  }
-  conteudoEl.innerHTML = `
-    <div class="info-linha"><span>Valor:</span><span class="info-valor">R$ ${Number(dados.valor_nota).toFixed(2)}</span></div>
-    ${dados.numero_serie ? `<div class="info-linha"><span>Nº Série:</span><span>${dados.numero_serie}</span></div>` : ''}
-    <div class="info-linha" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.1);">
-      <span>Resultado:</span><span style="color:${corResultado};font-weight:bold;">${textoResultado}</span>
-    </div>
-  `;
-}
-function iniciarEscuta() {
-  if (!CLIENTE_ID) return;
-  supabase.channel('pagcheck-relatorio')
-  .on('postgres_changes', { event:'INSERT', table:'transacoes_gerais', filter:`cliente_id=eq.${CLIENTE_ID}` }, res => atualizarCard(res.new))
-  .on('postgres_changes', { event:'UPDATE', table:'transacoes_gerais', filter:`cliente_id=eq.${CLIENTE_ID}` }, res => atualizarCard(res.new))
-  .on('postgres_changes', { event:'INSERT', table:'verificacao_notas', filter:`cliente_id=eq.${CLIENTE_ID}` }, res => atualizarVerificacaoNotas(res.new))
-  .subscribe();
-}
-window.onclick = e => { if (e.target === document.getElementById('modalRelatorio')) document.getElementById('modalRelatorio').style.display = 'none'; }
 </script>
 
 </body>
