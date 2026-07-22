@@ -3,49 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teste Login Limpo</title>
+  <title>PagCheck - GitHub Pages</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial; padding: 30px; background: #f5f7fa; }
-    .caixa { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 8px; }
-    input, button { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
-    button { background: #2563eb; color: white; border: none; cursor: pointer; }
-    #erro { color: red; display: none; padding: 10px; background: #fde; border-radius: 4px; }
-    #sucesso { color: green; display: none; padding: 10px; background: #efd; border-radius: 4px; }
+    * { box-sizing: border-box; margin:0; padding:0; font-family: Arial, sans-serif; }
+    body { background:#f5f7fa; padding:20px; }
+    .container { max-width:420px; margin:60px auto; background:white; padding:25px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,.1); }
+    h2 { text-align:center; color:#1e293b; margin-bottom:20px; }
+    input { width:100%; padding:12px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:6px; font-size:1rem; }
+    button { width:100%; padding:12px; background:#2563eb; color:white; border:none; border-radius:6px; font-size:1rem; font-weight:bold; cursor:pointer; }
+    button:disabled { background:#93c5fd; cursor:not-allowed; }
+    #mensagem { margin-top:15px; padding:12px; border-radius:6px; display:none; text-align:center; }
+    .erro { background:#fef2f2; color:#dc2626; }
+    .sucesso { background:#f0fdf4; color:#16a34a; }
+    .info { background:#eff6ff; color:#1d4ed8; }
   </style>
 </head>
 <body>
 
-<div class="caixa">
-  <h2>🔐 Acesso</h2>
+<div class="container">
+  <h2>🔐 Acessar PagCheck</h2>
   <input type="email" id="email" placeholder="Seu e-mail">
-  <input type="password" id="senha" placeholder="Sua chave">
+  <input type="password" id="chave" placeholder="Sua chave">
   <button id="btnEntrar">Entrar</button>
-  <div id="erro"></div>
-  <div id="sucesso">✅ Conectado!</div>
+  <div id="mensagem"></div>
 </div>
 
 <script>
-const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-const SUPABASE_CHAVE = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_CHAVE);
+// Espera TODOS os recursos carregarem antes de rodar
+window.addEventListener('load', () => {
+  console.log('✅ Página totalmente carregada');
 
-document.getElementById('btnEntrar').addEventListener('click', async () => {
-  const email = document.getElementById('email').value.trim();
-  const senha = document.getElementById('senha').value;
-  const erroEl = document.getElementById('erro');
-  const okEl = document.getElementById('sucesso');
+  // Dados do Supabase
+  const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+  const SUPABASE_CHAVE = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
 
-  erroEl.style.display = 'none'; okEl.style.display = 'none';
+  // Verifica se o Supabase carregou
+  if (!window.supabase) {
+    mostrarMensagem("❌ Biblioteca do Supabase não carregou", "erro");
+    return;
+  }
 
-  try {
-    if (!email || !senha) throw new Error("Preencha todos os campos");
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-    if (error) throw error;
-    okEl.style.display = 'block';
-  } catch (e) {
-    erroEl.textContent = "❌ " + e.message;
-    erroEl.style.display = 'block';
+  // Cria cliente
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_CHAVE);
+
+  // Pega elementos
+  const btn = document.getElementById('btnEntrar');
+  const emailEl = document.getElementById('email');
+  const chaveEl = document.getElementById('chave');
+  const msgEl = document.getElementById('mensagem');
+
+  // Liga evento de clique de forma segura
+  btn.addEventListener('click', fazerLogin);
+
+  // Também funciona com Enter
+  emailEl.addEventListener('keydown', e => e.key === 'Enter' && fazerLogin());
+  chaveEl.addEventListener('keydown', e => e.key === 'Enter' && fazerLogin());
+
+  async function fazerLogin() {
+    const email = emailEl.value.trim();
+    const senha = chaveEl.value;
+    
+    msgEl.style.display = 'none';
+    btn.disabled = true;
+    mostrarMensagem('Verificando...', 'info');
+
+    try {
+      if (!email || !senha) throw new Error('Preencha e-mail e chave');
+      
+      const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+      if (error) throw error;
+
+      mostrarMensagem('✅ Login realizado!', 'sucesso');
+
+    } catch (erro) {
+      console.error('ERRO:', erro);
+      mostrarMensagem('❌ ' + erro.message, 'erro');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function mostrarMensagem(texto, tipo) {
+    msgEl.textContent = texto;
+    msgEl.className = tipo;
+    msgEl.style.display = 'block';
   }
 });
 </script>
