@@ -187,9 +187,9 @@ let CLIENTE_ID = null;
 let valorEsperado = null;
 let transacoes = [];
 
-// ⌨️ ATALHO: FUNCIONA SEMPRE — MESMO SEM LOGAR
+// ⌨️ ATALHO: Ctrl X abre a Área de Administração
 document.addEventListener('keydown', function(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
     e.preventDefault();
     window.open('cadastro.html', '_blank');
   }
