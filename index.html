@@ -12,18 +12,21 @@
     .tela-acesso {
       max-width: 420px; margin: 80px auto; background: white;
       padding: 24px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      position: relative; z-index: 1;
     }
     .tela-acesso h2 { text-align: center; color: #1e293b; margin-bottom: 20px; }
     .tela-acesso input {
-      width: 100%; padding: 10px; margin-bottom: 12px;
-      border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem;
+      width: 100%; padding: 12px; margin-bottom: 12px;
+      border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem;
     }
     .tela-acesso button {
-      width: 100%; padding: 10px; background: #2563eb; color: white;
-      border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px;
+      width: 100%; padding: 12px; background: #2563eb; color: white;
+      border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+      font-size: 1rem; position: relative; z-index: 2;
     }
-    .tela-acesso button:hover { background: #1d4ed8; }
-    .aviso { color: #dc2626; text-align: center; margin-top: 10px; display: none; }
+    .tela-acesso button:disabled { background: #93c5fd; cursor: not-allowed; }
+    .aviso { color: #dc2626; text-align: center; margin-top: 12px; display: none; padding: 10px; border-radius: 6px; background: #fef2f2; font-weight: 500; }
+    .carregando { color: #2563eb; text-align: center; margin-top: 12px; display: none; font-weight: 500; }
 
     .header { text-align: center; margin-bottom: 16px; position: relative; }
     .btn-sair {
@@ -94,8 +97,9 @@
   <h2>🔐 Acessar PagCheck</h2>
   <input type="email" id="email" placeholder="Seu e-mail">
   <input type="password" id="senha" placeholder="Sua chave">
-  <button onclick="entrar()">Entrar</button>
+  <button id="botaoEntrar">Entrar</button>
   <div id="aviso" class="aviso"></div>
+  <div id="carregando" class="carregando">Verificando...</div>
 </div>
 
 <div id="painel" class="painel-principal">
@@ -179,29 +183,56 @@ let CLIENTE_ID = null;
 let valorEsperado = null;
 let transacoes = [];
 
-async function checarSessao() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
+// LIGAÇÃO DIRETA DO BOTÃO — MAIS CONFIÁVEL
+document.addEventListener('DOMContentLoaded', () => {
+  const botao = document.getElementById('botaoEntrar');
+  botao.addEventListener('click', entrar);
+
+  // Também aciona ao apertar ENTER nos campos
+  document.getElementById('email').addEventListener('keypress', e => e.key === 'Enter' && entrar());
+  document.getElementById('senha').addEventListener('keypress', e => e.key === 'Enter' && entrar());
+
+  checarSessao();
+});
+
+async function entrar() {
+  const email = document.getElementById('email').value.trim();
+  const senha = document.getElementById('senha').value;
+  const aviso = document.getElementById('aviso');
+  const carregando = document.getElementById('carregando');
+  const btn = document.getElementById('botaoEntrar');
+  
+  aviso.style.display = 'none';
+  aviso.textContent = '';
+  
+  if (!email || !senha) {
+    aviso.textContent = "❌ Preencha e-mail e chave";
+    aviso.style.display = 'block';
+    return;
+  }
+
+  carregando.style.display = 'block';
+  btn.disabled = true;
+
+  try {
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    if (error) throw error;
+
     await pegarClienteId();
     mostrarPainel();
+
+  } catch (erro) {
+    console.error("Erro login:", erro);
+    aviso.textContent = "❌ E-mail ou chave inválidos";
+    aviso.style.display = 'block';
+  } finally {
+    carregando.style.display = 'none';
+    btn.disabled = false;
   }
 }
 
-async function entrar() {
-  const email = document.getElementById('email').value;
-  const senha = document.getElementById('senha').value;
-  const aviso = document.getElementById('aviso');
-  aviso.style.display = 'none';
-
-  const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-  if (error) { aviso.textContent = "❌ E-mail ou chave inválidos"; aviso.style.display = 'block'; return; }
-
-  await pegarClienteId();
-  mostrarPainel();
-}
-
 async function sair() {
-  await supabase.auth.signOut();
+  try { await supabase.auth.signOut(); } catch(e) { console.error(e); }
   CLIENTE_ID = null;
   document.getElementById('telaAcesso').style.display = 'block';
   document.getElementById('painel').style.display = 'none';
@@ -214,10 +245,15 @@ function mostrarPainel() {
 }
 
 async function pegarClienteId() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  const { data } = await supabase.from('estabelecimentos').select('cliente_id').eq('usuario_id', user.id).single();
-  CLIENTE_ID = data.cliente_id;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('estabelecimentos').select('cliente_id').eq('usuario_id', user.id).single();
+    CLIENTE_ID = data?.cliente_id || null;
+  } catch (e) {
+    console.error("Sem vínculo empresa:", e);
+    CLIENTE_ID = null;
+  }
 }
 
 function definirValor() {
@@ -310,8 +346,7 @@ function iniciarTempoReal(){
   .on('postgres_changes',{event:'INSERT',table:'verificacao_notas',filter:`cliente_id=eq.${CLIENTE_ID}`},r=>atualizarNota(r.new))
   .subscribe();
 }
-
-checarSessao();
 </script>
 </body>
 </html>
+1
