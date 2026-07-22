@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Login Limpo</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial; padding: 30px; background: #f5f7fa; }
+    .caixa { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 8px; }
+    input, button { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #2563eb; color: white; border: none; cursor: pointer; }
+    #erro { color: red; display: none; padding: 10px; background: #fde; border-radius: 4px; }
+    #sucesso { color: green; display: none; padding: 10px; background: #efd; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="caixa">
+  <h2>🔐 Acesso</h2>
+  <input type="email" id="email" placeholder="Seu e-mail">
+  <input type="password" id="senha" placeholder="Sua chave">
+  <button id="btnEntrar">Entrar</button>
+  <div id="erro"></div>
+  <div id="sucesso">✅ Conectado!</div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+const SUPABASE_CHAVE = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_CHAVE);
+
+document.getElementById('btnEntrar').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const senha = document.getElementById('senha').value;
+  const erroEl = document.getElementById('erro');
+  const okEl = document.getElementById('sucesso');
+
+  erroEl.style.display = 'none'; okEl.style.display = 'none';
+
+  try {
+    if (!email || !senha) throw new Error("Preencha todos os campos");
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    if (error) throw error;
+    okEl.style.display = 'block';
+  } catch (e) {
+    erroEl.textContent = "❌ " + e.message;
+    erroEl.style.display = 'block';
+  }
+});
+</script>
+
+</body>
+</html>
