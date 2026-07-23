@@ -15,41 +15,23 @@
       min-height: 100vh;
     }
 
-    .painel-principal {
-      width: 100%;
-    }
-    .header {
-      display:flex; justify-content:space-between; align-items:center;
-      text-align: center; margin-bottom: 16px; position: relative; flex-wrap:wrap; gap:10px;
-    }
-    .btn-sair {
-      background: #ef4444; color: white; border: none; padding: 8px 14px;
-      border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight:bold;
-    }
+    .painel-principal { width: 100%; }
+    .header { display:flex; justify-content:space-between; align-items:center; text-align: center; margin-bottom: 16px; position: relative; flex-wrap:wrap; gap:10px; }
+    .btn-sair { background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight:bold; }
     .logo { display: flex; align-items: center; justify-content: center; gap: 10px; }
     .logo-icone { width: 40px; height: 40px; }
     .logo-texto { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 800; color: #1e293b; }
     .logo-texto span { color: #2563eb; }
     .slogan { width:100%; color: #64748b; font-size: clamp(0.9rem, 1.3vw, 1rem); }
-    .aviso-seguranca {
-      background: #fffbeb; color: #92400e; padding: 8px; border-radius: 6px;
-      font-size: clamp(0.8rem, 1vw, 0.9rem); border-left: 3px solid #f59e0b;
-      max-width: 600px; margin: 0 auto 20px;
-    }
+    .aviso-seguranca { background: #fffbeb; color: #92400e; padding: 8px; border-radius: 6px; font-size: clamp(0.8rem, 1vw, 0.9rem); border-left: 3px solid #f59e0b; max-width: 600px; margin: 0 auto 20px; }
 
-    .valor-esperado {
-      background: #e0f2fe; border-radius: 8px; padding: 12px; margin-bottom: 16px;
-      max-width: 600px; margin: 0 auto 20px;
-    }
+    .valor-esperado { background: #e0f2fe; border-radius: 8px; padding: 12px; margin-bottom: 16px; max-width: 600px; margin: 0 auto 20px; }
     .grupo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
     .valor-esperado input { flex: 1; min-width: 200px; padding: 8px; border: 1px solid #2563eb; border-radius: 6px; font-size: 0.95rem; }
     .valor-esperado button { padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
     .aviso-valor { margin-top: 8px; display: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; text-align: center; background:#fee2e2;color:#dc2626; }
 
-    .resumo {
-      background: white; border-radius: 8px; padding: 16px; margin-bottom: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto 20px;
-    }
+    .resumo { background: white; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto 20px; }
     .resumo-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap:wrap; gap:10px; }
     .btn-relatorio { padding: 8px 14px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
     .resumo-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
@@ -94,7 +76,6 @@
       </svg>
       <h1 class="logo-texto">Pag<span>Check</span></h1>
     </div>
-    <!-- ✅ BOTÃO RENOMEADO PARA "FECHAR" -->
     <button class="btn-sair" onclick="sair()">Fechar</button>
     <p class="slogan">Confirmação direto do banco — sem golpes</p>
   </div>
@@ -150,30 +131,23 @@
     <div id="card-pix" class="card card-pix">
       <div class="card-titulo"><span class="card-icone">⚡</span> Pagamento via Pix</div>
       <div id="conteudo-pix"><div class="status-card status-pix">Aguardando novo pagamento...</div></div>
-      <div class="historico" id="hist-pix"><div class="historico-titulo">Últimas transações</div></div>
     </div>
     <div id="card-credito" class="card card-credito">
       <div class="card-titulo"><span class="card-icone">💳</span> Cartão de Crédito</div>
       <div id="conteudo-credito"><div class="status-card status-credito">Aguardando venda no crédito...</div></div>
-      <div class="historico" id="hist-credito"><div class="historico-titulo">Últimas transações</div></div>
     </div>
     <div id="card-debito" class="card card-debito">
       <div class="card-titulo"><span class="card-icone">💳</span> Cartão de Débito</div>
       <div id="conteudo-debito"><div class="status-card status-debito">Aguardando venda no débito...</div></div>
-      <div class="historico" id="hist-debito"><div class="historico-titulo">Últimas transações</div></div>
     </div>
     <div id="card-notas" class="card card-notas">
       <div class="card-titulo"><span class="card-icone">💵</span> Verificação de Notas</div>
-      <div id="conteudo-notas">
-        <div class="status-card status-notas">Aguardando leitor de notas...</div>
-        <div class="aviso-futuro">🔜 Funcionalidade opcional</div>
-      </div>
+      <div id="conteudo-notas"><div class="status-card status-notas">Aguardando leitor de notas...</div></div>
     </div>
   </div>
 </div>
 
 <script>
-// ============= CONFIGURAÇÃO E PROTEÇÃO =============
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -182,35 +156,36 @@ let CLIENTE_ID = null;
 let valorEsperado = null;
 let transacoesDoDia = [];
 
-// ✅ VERIFICA ACESSO: SE TENTAR ABRIR DIRETO, VOLTA PARA O INDEX (LOGIN)
+// ✅ VERIFICAÇÃO CORRIGIDA: NÃO TRAVA DE JEITO NENHUM
 async function verificarAcesso() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
     window.location.href = 'index.html';
     return;
   }
-  // Busca dados do usuário logado
-  const { data } = await supabase
-    .from('estabelecimentos')
-    .select('cliente_id')
-    .eq('usuario_id', session.user.id)
-    .single();
-  
-  CLIENTE_ID = data.cliente_id;
+
+  // Busca o cliente_id, se der erro continua normal
+  try {
+    const { data } = await supabase
+      .from('estabelecimentos')
+      .select('cliente_id')
+      .eq('usuario_id', session.user.id)
+      .single();
+    CLIENTE_ID = data?.cliente_id || null;
+  } catch {
+    CLIENTE_ID = null;
+  }
+
   iniciarSistema();
 }
 
-// ✅ BOTÃO FECHAR: SAI DIRETO SEM PERGUNTAR
 async function sair() {
   await supabase.auth.signOut();
-  CLIENTE_ID = null;
   window.location.href = 'index.html';
 }
 
-// ============= FUNÇÕES DO PAINEL =============
 function iniciarSistema() {
   iniciarEscutaTempoReal();
-  console.log('Painel carregado para o cliente:', CLIENTE_ID);
 }
 
 function definirValorEsperado() {
@@ -220,6 +195,7 @@ function definirValorEsperado() {
   document.getElementById('aviso-valor').style.display = 'none';
   if (valorEsperado && valorEsperado > 0) alert(`Valor da venda definido: R$ ${valorEsperado.toFixed(2)}`);
 }
+
 function atualizarResumo() {
   let pixConf = 0, pixAgen = 0, credito = 0, debito = 0;
   transacoesDoDia.forEach(t => {
@@ -237,6 +213,7 @@ function atualizarResumo() {
   document.getElementById('total-geral-conf').textContent = `R$ ${totalConf.toFixed(2)}`;
   document.getElementById('total-geral-agen').textContent = `R$ ${totalAgen.toFixed(2)}`;
 }
+
 function abrirRelatorio() {
   const hoje = new Date().toLocaleDateString('pt-BR');
   document.getElementById('data-relatorio').textContent = hoje;
@@ -252,7 +229,9 @@ function abrirRelatorio() {
   document.getElementById('valorTotalRelatorio').textContent = `R$ ${total.toFixed(2)}`;
   document.getElementById('modalRelatorio').style.display = 'block';
 }
+
 function fecharRelatorio() { document.getElementById('modalRelatorio').style.display = 'none'; }
+
 function baixarRelatorioCSV() {
   let csv = 'Horário,Tipo,Valor,Status,Detalhes\n';
   transacoesDoDia.forEach(t => {
@@ -267,6 +246,7 @@ function baixarRelatorioCSV() {
   link.download = `Relatorio_PagCheck_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
   link.click();
 }
+
 function atualizarCard(transacao) {
   const tipo = transacao.tipo.toLowerCase();
   const conteudoEl = document.getElementById(`conteudo-${tipo}`);
@@ -277,15 +257,12 @@ function atualizarCard(transacao) {
   if (valorEsperado && Math.abs(transacao.valor - valorEsperado) > 0.01) {
     document.getElementById('aviso-valor').style.display = 'block';
     document.getElementById('aviso-valor').textContent = `❌ Valor diferente! Esperado R$ ${valorEsperado.toFixed(2)}`;
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
   } else { document.getElementById('aviso-valor').style.display = 'none'; valorEsperado = null; }
   let corStatus, textoStatus, avisoExtra = '';
   if (transacao.status === 'AGENDADO') {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
     corStatus = '#f59e0b'; textoStatus = '⏳ PIX AGENDADO — NÃO LIBERE!';
     avisoExtra = `<div class="alerta-agendado">⚠️ Pode cancelar</div>`;
   } else if (['RECEBIDO','APROVADA'].includes(transacao.status)) {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3').play().catch(()=>{});
     corStatus = '#16a34a'; textoStatus = '✅ PAGAMENTO CONFIRMADO';
   } else { corStatus = '#ef4444'; textoStatus = '❌ CANCELADO'; }
   conteudoEl.innerHTML = `
@@ -299,19 +276,17 @@ function atualizarCard(transacao) {
   `;
   atualizarResumo();
 }
+
 function atualizarVerificacaoNotas(dados) {
   const conteudoEl = document.getElementById('conteudo-notas');
   const cardEl = document.getElementById('card-notas');
   cardEl.classList.add('ativo'); setTimeout(() => cardEl.classList.remove('ativo'), 2500);
   let corResultado, textoResultado;
   if (dados.resultado === 'AUTENTICA') {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3').play().catch(()=>{});
     corResultado='#16a34a'; textoResultado='✅ NOTA AUTÊNTICA';
   } else if (dados.resultado === 'SUSPEITA') {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(()=>{});
     corResultado='#f59e0b'; textoResultado='⚠️ SUSPEITA';
   } else {
-    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-90s.mp3').play().catch(()=>{});
     corResultado='#ef4444'; textoResultado='❌ FALSA';
   }
   conteudoEl.innerHTML = `
@@ -322,6 +297,7 @@ function atualizarVerificacaoNotas(dados) {
     </div>
   `;
 }
+
 function iniciarEscutaTempoReal() {
   if (!CLIENTE_ID) return;
   supabase.channel('pagcheck-relatorio')
@@ -330,9 +306,9 @@ function iniciarEscutaTempoReal() {
   .on('postgres_changes', { event:'INSERT', table:'verificacao_notas', filter:`cliente_id=eq.${CLIENTE_ID}` }, res => atualizarVerificacaoNotas(res.new))
   .subscribe();
 }
+
 window.onclick = e => { if (e.target === document.getElementById('modalRelatorio')) document.getElementById('modalRelatorio').style.display = 'none'; }
 
-// ✅ INICIALIZAÇÃO: RODA ASSIM QUE A PÁGINA CARREGA
 document.addEventListener('DOMContentLoaded', verificarAcesso);
 </script>
 
