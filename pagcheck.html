@@ -94,7 +94,8 @@
       </svg>
       <h1 class="logo-texto">Pag<span>Check</span></h1>
     </div>
-    <button class="btn-sair" onclick="sair()">Sair</button>
+    <!-- ✅ BOTÃO RENOMEADO PARA "FECHAR" -->
+    <button class="btn-sair" onclick="sair()">Fechar</button>
     <p class="slogan">Confirmação direto do banco — sem golpes</p>
   </div>
   <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE quando aparecer "CONFIRMADO"</div>
@@ -181,11 +182,11 @@ let CLIENTE_ID = null;
 let valorEsperado = null;
 let transacoesDoDia = [];
 
-// ✅ VERIFICA ACESSO: SE TENTAR ABRIR DIRETO, VOLTA PARA LOGIN
+// ✅ VERIFICA ACESSO: SE TENTAR ABRIR DIRETO, VOLTA PARA O INDEX (LOGIN)
 async function verificarAcesso() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
     return;
   }
   // Busca dados do usuário logado
@@ -199,11 +200,11 @@ async function verificarAcesso() {
   iniciarSistema();
 }
 
-// ✅ BOTÃO SAIR
+// ✅ BOTÃO FECHAR: SAI DIRETO SEM PERGUNTAR
 async function sair() {
   await supabase.auth.signOut();
   CLIENTE_ID = null;
-  window.location.href = 'login.html';
+  window.location.href = 'index.html';
 }
 
 // ============= FUNÇÕES DO PAINEL =============
