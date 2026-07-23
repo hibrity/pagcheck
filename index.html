@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PagCheck - Acesso Seguro</title>
-    <!-- Importação oficial do Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { 
@@ -23,9 +22,9 @@
             padding: 30px; 
             border-radius: 8px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            width: 360px; 
+            width: 100%;
+            max-width: 360px; 
         }
-        /* Logo e Título */
         .logo-area {
             text-align: center;
             margin-bottom: 25px;
@@ -86,6 +85,7 @@
             border-radius: 4px; 
             box-sizing: border-box; 
             font-family: Arial, sans-serif; 
+            font-size: 16px;
         }
         textarea { resize: vertical; height: 60px; }
         button { 
@@ -98,24 +98,26 @@
             cursor: pointer; 
             font-size: 16px; 
             margin-top: 15px; 
+            font-weight: bold;
         }
         button:hover { background-color: #1d4ed8; }
         .links { text-align: center; margin-top: 15px; }
         .links a { color: #2563eb; text-decoration: none; font-size: 14px; }
         .aviso { 
             margin-top:10px; 
-            padding:10px; 
+            padding:12px; 
             border-radius:4px; 
             display:none; 
             font-size:14px; 
+            font-weight:500;
+            word-break: break-word;
         }
-        .erro { background: #fde2e2; color: #b00000; }
-        .sucesso { background: #e2f9e2; color: #006400; }
+        .erro { background: #fde2e2; color: #b00000; border: 1px solid #fecaca; }
+        .sucesso { background: #e2f9e2; color: #006400; border: 1px solid #bbf7d0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- ✅ LOGO ADICIONADO AQUI -->
         <div class="logo-area">
             <div class="logo">
                 <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
@@ -128,15 +130,14 @@
         </div>
 
         <div class="tabs">
-            <button id="btn-login" class="tab-btn active" onclick="switchTab('login')">Login</button>
-            <button id="btn-cadastro" class="tab-btn" onclick="switchTab('cadastro')">Cadastro</button>
+            <button id="btn-login" class="tab-btn" onclick="switchTab('login')">Login</button>
+            <button id="btn-cadastro" class="tab-btn active" onclick="switchTab('cadastro')">Cadastro</button>
         </div>
 
-        <!-- Formulário de Login -->
-        <div id="login" class="form-panel active">
+        <div id="login" class="form-panel">
             <form id="form-login">
-                <input type="email" id="login-email" placeholder="E-mail" required>
-                <input type="password" id="login-senha" placeholder="Senha" required>
+                <input type="email" id="login-email" placeholder="Seu e-mail" required>
+                <input type="password" id="login-senha" placeholder="Sua senha" required>
                 <div id="avisoLogin" class="aviso"></div>
                 <button type="submit">Entrar</button>
             </form>
@@ -145,15 +146,14 @@
             </div>
         </div>
 
-        <!-- Formulário de Cadastro -->
-        <div id="cadastro" class="form-panel">
+        <div id="cadastro" class="form-panel active">
             <form id="form-cadastro">
                 <input type="text" id="cad-nome" placeholder="Nome Completo / Razão Social" required>
-                <input type="text" id="cad-documento" placeholder="CPF ou CNPJ (apenas números)" required>
-                <textarea id="cad-endereco" placeholder="Endereço Completo (Rua, Nº, Bairro, Cidade/UF)" required></textarea>
-                <input type="email" id="cad-email" placeholder="E-mail" required>
-                <input type="password" id="cad-senha" placeholder="Criar Senha" required>
-                <input type="password" id="cad-conf-senha" placeholder="Confirmar Senha" required>
+                <input type="text" id="cad-documento" placeholder="CPF ou CNPJ (apenas números)" required maxlength="18">
+                <textarea id="cad-endereco" placeholder="Endereço Completo" required></textarea>
+                <input type="email" id="cad-email" placeholder="Seu e-mail" required>
+                <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6 caracteres)" required minlength="6">
+                <input type="password" id="cad-conf-senha" placeholder="Confirmar senha" required minlength="6">
                 <div id="avisoCad" class="aviso"></div>
                 <button type="submit">Cadastrar</button>
             </form>
@@ -161,7 +161,6 @@
     </div>
 
     <script>
-        // Suas credenciais do Supabase
         const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -184,11 +183,10 @@
             document.querySelectorAll('.aviso').forEach(el => { el.style.display = 'none'; el.textContent = ''; }); 
         }
 
-        // Lógica de Cadastro
         document.getElementById('form-cadastro').addEventListener('submit', async e => {
             e.preventDefault(); limparAvisos();
             const nome = document.getElementById('cad-nome').value.trim();
-            const documento = document.getElementById('cad-documento').value.trim();
+            const documento = document.getElementById('cad-documento').value.trim().replace(/\D/g, '');
             const endereco = document.getElementById('cad-endereco').value.trim();
             const email = document.getElementById('cad-email').value.trim();
             const senha = document.getElementById('cad-senha').value;
@@ -196,13 +194,16 @@
 
             if(senha !== confSenha) return mostrarAviso('avisoCad','❌ As senhas não coincidem!','erro');
             if(senha.length < 6) return mostrarAviso('avisoCad','❌ Senha deve ter pelo menos 6 caracteres','erro');
+            if(documento.length < 11) return mostrarAviso('avisoCad','❌ CPF/CNPJ inválido!','erro');
 
-            mostrarAviso('avisoCad','⏳ Criando conta...','sucesso');
-            const {data:authData, error:authError} = await _supabase.auth.signUp({email, password: senha});
+            mostrarAviso('avisoCad','⏳ Criando sua conta...','sucesso');
+            
+            try {
+                const {data:authData, error:authError} = await _supabase.auth.signUp({email, password: senha});
 
-            if(authError) return mostrarAviso('avisoCad','❌ ' + authError.message,'erro');
+                if(authError) throw authError;
+                if(!authData?.user) throw new Error("Não foi possível criar o usuário");
 
-            if(authData?.user){
                 const {error:profileError} = await _supabase.from('estabelecimentos').insert([{
                     usuario_id: authData.user.id,
                     cliente_id: authData.user.id,
@@ -213,37 +214,46 @@
                     email: email
                 }]);
 
-                if(profileError) return mostrarAviso('avisoCad','⚠️ Conta criada, mas erro nos dados: ' + profileError.message,'erro');
+                if(profileError) throw profileError;
                 
-                mostrarAviso('avisoCad','✅ Cadastro realizado!','sucesso');
-                setTimeout(()=>switchTab('login'),1200);
+                mostrarAviso('avisoCad','✅ Cadastro realizado com sucesso!','sucesso');
+                setTimeout(()=>switchTab('login'), 1500);
+            } catch (erro) {
+                console.error(erro);
+                mostrarAviso('avisoCad','❌ ' + (erro.message || JSON.stringify(erro)),'erro');
             }
         });
 
-        // Lógica de Login → Vai para o painel
         document.getElementById('form-login').addEventListener('submit', async e => {
             e.preventDefault(); limparAvisos();
             const email = document.getElementById('login-email').value.trim();
             const senha = document.getElementById('login-senha').value;
 
-            if(!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha todos os campos','erro');
+            if(!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha e-mail e senha!','erro');
 
-            mostrarAviso('avisoLogin','⏳ Entrando...','sucesso');
-            const {data, error} = await _supabase.auth.signInWithPassword({email, password: senha});
-
-            if(error) return mostrarAviso('avisoLogin','❌ ' + error.message,'erro');
+            mostrarAviso('avisoLogin','⏳ Entrando no sistema...','sucesso');
             
-            mostrarAviso('avisoLogin','✅ Login bem-sucedido! Redirecionando...','sucesso');
-            setTimeout(()=>window.location.href='pagcheck.html',1000);
+            try {
+                const {data, error} = await _supabase.auth.signInWithPassword({email, password: senha});
+                if(error) throw error;
+                
+                mostrarAviso('avisoLogin','✅ Acesso liberado!','sucesso');
+                setTimeout(()=>window.location.href='pagcheck.html', 1000);
+            } catch (erro) {
+                mostrarAviso('avisoLogin','❌ ' + erro.message,'erro');
+            }
         });
 
-        // Recuperação de senha
         async function recuperarSenha(){
             const email = prompt("Digite o seu e-mail cadastrado:");
             if(!email) return;
-            const {data, error} = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
-            if(error) alert("❌ Erro: " + error.message);
-            else alert("✅ E-mail de recuperação enviado!");
+            try {
+                const {data, error} = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+                if(error) throw error;
+                alert("✅ Link de recuperação enviado para o e-mail!");
+            } catch (erro) {
+                alert("❌ Erro: " + erro.message);
+            }
         }
     </script>
 </body>
