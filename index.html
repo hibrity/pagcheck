@@ -6,112 +6,25 @@
     <title>PagCheck - Acesso Seguro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: #f4f7f6; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px 0; 
-            box-sizing: border-box; 
-        }
-        .container { 
-            background-color: #fff; 
-            padding: 30px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            width: 100%;
-            max-width: 360px; 
-        }
-        .logo-area {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 5px;
-        }
-        .logo-icone {
-            width: 45px;
-            height: 45px;
-        }
-        .logo-texto {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #1e293b;
-            margin: 0;
-        }
-        .logo-texto span {
-            color: #2563eb;
-        }
-        .slogan {
-            color: #64748b;
-            font-size: 0.9rem;
-            margin: 0;
-        }
-        .tabs { 
-            display: flex; 
-            justify-content: space-around; 
-            margin-bottom: 20px; 
-            border-bottom: 2px solid #eee; 
-        }
-        .tab-btn { 
-            background: none; 
-            border: none; 
-            padding: 10px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            color: #888; 
-            width: 50%; 
-        }
-        .tab-btn.active { 
-            color: #2563eb; 
-            border-bottom: 2px solid #2563eb; 
-            margin-bottom: -2px; 
-        }
+        body { font-family: Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 360px; }
+        .logo-area { text-align: center; margin-bottom: 25px; }
+        .logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
+        .logo-icone { width: 45px; height: 45px; }
+        .logo-texto { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 0; }
+        .logo-texto span { color: #2563eb; }
+        .slogan { color: #64748b; font-size: 0.9rem; margin: 0; }
+        .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+        .tab-btn { flex: 1; border: none; background: none; padding: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: #888; }
+        .tab-btn.active { color: #2563eb; border-bottom: 2px solid #2563eb; margin-bottom: -2px; }
         .form-panel { display: none; }
         .form-panel.active { display: block; }
-        input, textarea { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 8px 0; 
-            border: 1px solid #ddd; 
-            border-radius: 4px; 
-            box-sizing: border-box; 
-            font-family: Arial, sans-serif; 
-            font-size: 16px;
-        }
-        textarea { resize: vertical; height: 60px; }
-        button { 
-            width: 100%; 
-            background-color: #2563eb; 
-            color: white; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            margin-top: 15px; 
-            font-weight: bold;
-        }
-        button:hover { background-color: #1d4ed8; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        button:hover { background: #1d4ed8; }
         .links { text-align: center; margin-top: 15px; }
         .links a { color: #2563eb; text-decoration: none; font-size: 14px; }
-        .aviso { 
-            margin-top:10px; 
-            padding:12px; 
-            border-radius:4px; 
-            display:none; 
-            font-size:14px; 
-            font-weight:500;
-            word-break: break-word;
-        }
+        .aviso { margin-top: 10px; padding: 12px; border-radius: 4px; display: none; font-size: 14px; font-weight: 500; word-break: break-word; }
         .erro { background: #fde2e2; color: #b00000; border: 1px solid #fecaca; }
         .sucesso { background: #e2f9e2; color: #006400; border: 1px solid #bbf7d0; }
     </style>
@@ -152,7 +65,7 @@
                 <input type="text" id="cad-documento" placeholder="CPF (11) ou CNPJ (14)" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 <textarea id="cad-endereco" placeholder="Endereço Completo" required></textarea>
                 <input type="email" id="cad-email" placeholder="Seu e-mail" required>
-                <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6 caracteres)" required minlength="6">
+                <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6)" required minlength="6">
                 <input type="password" id="cad-conf-senha" placeholder="Confirmar senha" required minlength="6">
                 <div id="avisoCad" class="aviso"></div>
                 <button type="submit">Cadastrar</button>
@@ -166,20 +79,20 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         function switchTab(tabName) {
-            document.querySelectorAll('.form-panel').forEach(panel => panel.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
             document.getElementById(`btn-${tabName}`).classList.add('active');
             limparAvisos();
         }
-        function mostrarAviso(id, texto, tipo) { 
-            const el = document.getElementById(id); 
-            el.textContent = texto; 
-            el.className = `aviso ${tipo}`; 
-            el.style.display = 'block'; 
+        function mostrarAviso(id, texto, tipo) {
+            const el = document.getElementById(id);
+            el.textContent = texto;
+            el.className = `aviso ${tipo}`;
+            el.style.display = 'block';
         }
-        function limparAvisos() { 
-            document.querySelectorAll('.aviso').forEach(el => el.style.display = 'none'); 
+        function limparAvisos() {
+            document.querySelectorAll('.aviso').forEach(el => el.style.display = 'none');
         }
 
         document.getElementById('form-cadastro').addEventListener('submit', async e => {
@@ -191,33 +104,36 @@
             const senha = document.getElementById('cad-senha').value;
             const conf = document.getElementById('cad-conf-senha').value;
 
-            if (![11,14].includes(doc.length)) return mostrarAviso('avisoCad','❌ Digite CPF com 11 ou CNPJ com 14 números','erro');
-            if (senha !== conf) return mostrarAviso('avisoCad','❌ As senhas não coincidem','erro');
-            if (senha.length < 6) return mostrarAviso('avisoCad','❌ Senha deve ter pelo menos 6 caracteres','erro');
+            if (![11,14].includes(doc.length)) return mostrarAviso('avisoCad','❌ CPF 11 ou CNPJ 14 números','erro');
+            if (senha !== conf) return mostrarAviso('avisoCad','❌ Senhas não coincidem','erro');
+            if (senha.length < 6) return mostrarAviso('avisoCad','❌ Senha mínima 6 caracteres','erro');
 
-            mostrarAviso('avisoCad','⏳ Criando sua conta...','sucesso');
+            mostrarAviso('avisoCad','⏳ Criando conta...','sucesso');
             try {
-                const authResult = await _supabase.auth.signUp({ email, password: senha });
-                if (authResult.error) throw authResult.error;
-                if (!authResult.data.user) throw new Error('Não foi possível criar o usuário');
+                const auth = await _supabase.auth.signUp({email, password: senha});
+                if (auth.error) throw auth.error;
+                if (!auth.data.user) throw new Error('Usuário não foi criado');
 
-                const perfilResult = await _supabase.from('estabelecimentos').insert({
-                    usuario_id: authResult.data.user.id,
-                    cliente_id: authResult.data.user.id,
-                    nome: nome,
-                    empresa: nome,
-                    cpf_cnpj: doc,
-                    endereco: endereco,
-                    email: email
+                const perfil = await _supabase.from('estabelecimentos').insert({
+                    usuario_id: auth.data.user.id,
+                    cliente_id: auth.data.user.id,
+                    nome, empresa: nome, cpf_cnpj: doc, endereco, email
                 });
-                if (perfilResult.error) throw perfilResult.error;
+                if (perfil.error) throw perfil.error;
 
-                mostrarAviso('avisoCad','✅ Cadastro realizado com sucesso!','sucesso');
-                setTimeout(()=>switchTab('login'), 1500);
-            } catch (erro) {
-                console.error('ERRO:', erro);
-                const mensagem = erro?.message || JSON.stringify(erro).replace(/[{}"]/g,'');
-                mostrarAviso('avisoCad','❌ ' + mensagem,'erro');
+                mostrarAviso('avisoCad','✅ Cadastro ok!','sucesso');
+                setTimeout(()=>switchTab('login'),1500);
+            } catch (e) {
+                console.error('ERRO COMPLETO:', e);
+                let msg = '';
+                if (typeof e === 'object' && e !== null) {
+                    msg = e.message || e.msg || e.details || e.hint || JSON.stringify(e);
+                } else {
+                    msg = String(e);
+                }
+                msg = msg.replace(/[{}"\\]/g,' ').trim();
+                if (!msg || msg === 'null') msg = 'Erro interno no cadastro';
+                mostrarAviso('avisoCad','❌ ' + msg,'erro');
             }
         });
 
@@ -225,30 +141,27 @@
             e.preventDefault(); limparAvisos();
             const email = document.getElementById('login-email').value.trim();
             const senha = document.getElementById('login-senha').value;
-
-            if (!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha e-mail e senha','erro');
-
-            mostrarAviso('avisoLogin','⏳ Entrando no sistema...','sucesso');
+            if (!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha tudo','erro');
+            mostrarAviso('avisoLogin','⏳ Entrando...','sucesso');
             try {
-                const loginResult = await _supabase.auth.signInWithPassword({ email, password: senha });
-                if (loginResult.error) throw loginResult.error;
-                
+                const login = await _supabase.auth.signInWithPassword({email, password: senha});
+                if (login.error) throw login.error;
                 mostrarAviso('avisoLogin','✅ Acesso liberado!','sucesso');
-                setTimeout(()=>window.location.href='pagcheck.html', 1000);
-            } catch (erro) {
-                mostrarAviso('avisoLogin','❌ ' + (erro?.message || 'Erro ao acessar'),'erro');
+                setTimeout(()=>location.href='pagcheck.html',1000);
+            } catch (e) {
+                mostrarAviso('avisoLogin','❌ ' + (e?.message || 'Erro'),'erro');
             }
         });
 
         async function recuperarSenha(){
-            const email = prompt("Digite o seu e-mail cadastrado:");
+            const email = prompt('Seu e-mail:');
             if (!email) return;
             try {
-                const recResult = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
-                if (recResult.error) throw recResult.error;
-                alert("✅ Link de recuperação enviado para o e-mail!");
-            } catch (erro) {
-                alert("❌ Erro: " + erro.message);
+                const r = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:location.href});
+                if (r.error) throw r.error;
+                alert('✅ Link enviado!');
+            } catch (e) {
+                alert('❌ ' + e.message);
             }
         }
     </script>
