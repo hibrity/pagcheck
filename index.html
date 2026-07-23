@@ -149,7 +149,6 @@
         <div id="cadastro" class="form-panel active">
             <form id="form-cadastro">
                 <input type="text" id="cad-nome" placeholder="Nome Completo / Razão Social" required>
-                <!-- ✅ VALIDAÇÃO NO CAMPO: SÓ NÚMEROS, MÁX 14 DÍGITOS -->
                 <input type="text" id="cad-documento" placeholder="CPF (11) ou CNPJ (14)" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 <textarea id="cad-endereco" placeholder="Endereço Completo" required></textarea>
                 <input type="email" id="cad-email" placeholder="Seu e-mail" required>
@@ -193,7 +192,6 @@
             const senha = document.getElementById('cad-senha').value;
             const confSenha = document.getElementById('cad-conf-senha').value;
 
-            // ✅ VALIDAÇÃO AUTOMÁTICA: CPF = 11 / CNPJ = 14
             if (![11, 14].includes(documento.length)) {
                 return mostrarAviso('avisoCad','❌ Digite um CPF com 11 números ou CNPJ com 14 números!','erro');
             }
@@ -205,7 +203,7 @@
             try {
                 const {data:authData, error:authError} = await _supabase.auth.signUp({email, password: senha});
 
-                if(authError) throw authError;
+                if(authError) throw new Error(authError.message || 'Erro ao criar usuário');
                 if(!authData?.user) throw new Error("Não foi possível criar o usuário");
 
                 const {error:profileError} = await _supabase.from('estabelecimentos').insert([{
@@ -218,13 +216,14 @@
                     email: email
                 }]);
 
-                if(profileError) throw profileError;
+                if(profileError) throw new Error(profileError.message || 'Erro ao salvar dados');
                 
                 mostrarAviso('avisoCad','✅ Cadastro realizado com sucesso!','sucesso');
                 setTimeout(()=>switchTab('login'), 1500);
             } catch (erro) {
-                console.error(erro);
-                mostrarAviso('avisoCad','❌ ' + (erro.message || JSON.stringify(erro)),'erro');
+                console.error('ERRO COMPLETO:', erro);
+                const mensagem = erro?.message || JSON.stringify(erro).replace(/[{}"]/g,'');
+                mostrarAviso('avisoCad','❌ ' + mensagem,'erro');
             }
         });
 
@@ -239,7 +238,7 @@
             
             try {
                 const {data, error} = await _supabase.auth.signInWithPassword({email, password: senha});
-                if(error) throw error;
+                if(error) throw new Error(error.message);
                 
                 mostrarAviso('avisoLogin','✅ Acesso liberado!','sucesso');
                 setTimeout(()=>window.location.href='pagcheck.html', 1000);
@@ -252,8 +251,8 @@
             const email = prompt("Digite o seu e-mail cadastrado:");
             if(!email) return;
             try {
-                const {data, error} = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
-                if(error) throw error;
+                const {error} = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+                if(error) throw new Error(error.message);
                 alert("✅ Link de recuperação enviado para o e-mail!");
             } catch (erro) {
                 alert("❌ Erro: " + erro.message);
