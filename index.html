@@ -169,59 +169,53 @@
             document.querySelectorAll('.form-panel').forEach(panel => panel.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
-            if(tabName === 'login') document.getElementById('btn-login').classList.add('active');
-            if(tabName === 'cadastro') document.getElementById('btn-cadastro').classList.add('active');
+            document.getElementById(`btn-${tabName}`).classList.add('active');
             limparAvisos();
         }
         function mostrarAviso(id, texto, tipo) { 
             const el = document.getElementById(id); 
             el.textContent = texto; 
-            el.className = 'aviso ' + tipo; 
+            el.className = `aviso ${tipo}`; 
             el.style.display = 'block'; 
         }
         function limparAvisos() { 
-            document.querySelectorAll('.aviso').forEach(el => { el.style.display = 'none'; el.textContent = ''; }); 
+            document.querySelectorAll('.aviso').forEach(el => el.style.display = 'none'); 
         }
 
         document.getElementById('form-cadastro').addEventListener('submit', async e => {
             e.preventDefault(); limparAvisos();
             const nome = document.getElementById('cad-nome').value.trim();
-            const documento = document.getElementById('cad-documento').value.trim().replace(/\D/g, '');
+            const doc = document.getElementById('cad-documento').value.trim().replace(/\D/g,'');
             const endereco = document.getElementById('cad-endereco').value.trim();
             const email = document.getElementById('cad-email').value.trim();
             const senha = document.getElementById('cad-senha').value;
-            const confSenha = document.getElementById('cad-conf-senha').value;
+            const conf = document.getElementById('cad-conf-senha').value;
 
-            if (![11, 14].includes(documento.length)) {
-                return mostrarAviso('avisoCad','❌ Digite um CPF com 11 números ou CNPJ com 14 números!','erro');
-            }
-            if(senha !== confSenha) return mostrarAviso('avisoCad','❌ As senhas não coincidem!','erro');
-            if(senha.length < 6) return mostrarAviso('avisoCad','❌ Senha deve ter pelo menos 6 caracteres!','erro');
+            if (![11,14].includes(doc.length)) return mostrarAviso('avisoCad','❌ Digite CPF com 11 ou CNPJ com 14 números','erro');
+            if (senha !== conf) return mostrarAviso('avisoCad','❌ As senhas não coincidem','erro');
+            if (senha.length < 6) return mostrarAviso('avisoCad','❌ Senha deve ter pelo menos 6 caracteres','erro');
 
             mostrarAviso('avisoCad','⏳ Criando sua conta...','sucesso');
-            
             try {
-                const {data:authData, error:authError} = await _supabase.auth.signUp({email, password: senha});
+                const authResult = await _supabase.auth.signUp({ email, password: senha });
+                if (authResult.error) throw authResult.error;
+                if (!authResult.data.user) throw new Error('Não foi possível criar o usuário');
 
-                if(authError) throw new Error(authError.message || 'Erro ao criar usuário');
-                if(!authData?.user) throw new Error("Não foi possível criar o usuário");
-
-                const {error:profileError} = await _supabase.from('estabelecimentos').insert([{
-                    usuario_id: authData.user.id,
-                    cliente_id: authData.user.id,
+                const perfilResult = await _supabase.from('estabelecimentos').insert({
+                    usuario_id: authResult.data.user.id,
+                    cliente_id: authResult.data.user.id,
                     nome: nome,
                     empresa: nome,
-                    cpf_cnpj: documento,
+                    cpf_cnpj: doc,
                     endereco: endereco,
                     email: email
-                }]);
+                });
+                if (perfilResult.error) throw perfilResult.error;
 
-                if(profileError) throw new Error(profileError.message || 'Erro ao salvar dados');
-                
                 mostrarAviso('avisoCad','✅ Cadastro realizado com sucesso!','sucesso');
                 setTimeout(()=>switchTab('login'), 1500);
             } catch (erro) {
-                console.error('ERRO COMPLETO:', erro);
+                console.error('ERRO:', erro);
                 const mensagem = erro?.message || JSON.stringify(erro).replace(/[{}"]/g,'');
                 mostrarAviso('avisoCad','❌ ' + mensagem,'erro');
             }
@@ -232,27 +226,26 @@
             const email = document.getElementById('login-email').value.trim();
             const senha = document.getElementById('login-senha').value;
 
-            if(!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha e-mail e senha!','erro');
+            if (!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha e-mail e senha','erro');
 
             mostrarAviso('avisoLogin','⏳ Entrando no sistema...','sucesso');
-            
             try {
-                const {data, error} = await _supabase.auth.signInWithPassword({email, password: senha});
-                if(error) throw new Error(error.message);
+                const loginResult = await _supabase.auth.signInWithPassword({ email, password: senha });
+                if (loginResult.error) throw loginResult.error;
                 
                 mostrarAviso('avisoLogin','✅ Acesso liberado!','sucesso');
                 setTimeout(()=>window.location.href='pagcheck.html', 1000);
             } catch (erro) {
-                mostrarAviso('avisoLogin','❌ ' + erro.message,'erro');
+                mostrarAviso('avisoLogin','❌ ' + (erro?.message || 'Erro ao acessar'),'erro');
             }
         });
 
         async function recuperarSenha(){
             const email = prompt("Digite o seu e-mail cadastrado:");
-            if(!email) return;
+            if (!email) return;
             try {
-                const {error} = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
-                if(error) throw new Error(error.message);
+                const recResult = await _supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+                if (recResult.error) throw recResult.error;
                 alert("✅ Link de recuperação enviado para o e-mail!");
             } catch (erro) {
                 alert("❌ Erro: " + erro.message);
