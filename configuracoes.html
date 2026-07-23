@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PagCheck - Configurar Integrações</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif; }
+    body { background:#f5f7fa; padding:20px; max-width:850px; margin:0 auto; min-height:100vh; }
+    .cabecalho { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding-bottom:12px; border-bottom:1px solid #e2e8f0; flex-wrap:wrap; gap:10px; }
+    .titulo { font-size:1.5rem; font-weight:bold; color:#1e293b; }
+    .btn-voltar { background:#64748b; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:bold; }
+    .aviso-seg { background:#eff6ff; border-left:4px solid #2563eb; padding:15px; border-radius:8px; margin-bottom:25px; }
+    .aviso-seg p { font-size:0.95rem; color:#1e40af; line-height:1.5; margin:0; }
+    .bloco { background:white; padding:18px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05); margin-bottom:20px; }
+    .label { display:block; font-weight:bold; margin-bottom:10px; color:#374151; font-size:1rem; }
+    .select { width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; font-size:1rem; background:white; }
+    .link-area { background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:15px; margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .link-texto { flex:1; min-width:280px; font-size:0.85rem; color:#1e293b; word-break:break-all; font-family:monospace; }
+    .btn-copiar { background:#2563eb; color:white; border:none; padding:10px 14px; border-radius:6px; cursor:pointer; font-weight:bold; }
+    .dica { font-size:0.85rem; color:#64748b; margin-top:8px; }
+    .instrucoes { margin-top:15px; padding-top:15px; border-top:1px solid #f1f5f9; }
+    .instrucoes h4 { margin-bottom:10px; color:#1e293b; }
+    .passos { padding-left:20px; margin:0; }
+    .passos li { margin:6px 0; font-size:0.9rem; color:#374151; }
+    .oculto { display:none; }
+  </style>
+</head>
+<body>
+
+<div class="cabecalho">
+  <h1 class="titulo">⚙️ Configurar Meios de Recebimento</h1>
+  <button class="btn-voltar" onclick="window.location.href='pagcheck.html'">← Voltar ao Painel</button>
+</div>
+
+<div class="aviso-seg">
+  <p>🔒 <strong>Segurança total:</strong> Você NÃO precisa digitar senhas ou chaves secretas aqui. Apenas copie o link gerado e cole dentro da sua conta no sistema que você usa.</p>
+</div>
+
+<!-- PASSO 1: ESCOLHER SISTEMA -->
+<div class="bloco">
+  <label class="label">1. Selecione onde você recebe pagamentos:</label>
+  <select id="sistema" class="select" onchange="gerarLink()">
+    <option value="">Escolha...</option>
+    <optgroup label="🏦 BANCOS (Pix e Transações)">
+      <option value="inter">Banco Inter</option>
+      <option value="bradesco">Bradesco</option>
+      <option value="itau">Itaú Unibanco</option>
+      <option value="caixa">Caixa Econômica Federal</option>
+      <option value="banco-brasil">Banco do Brasil</option>
+      <option value="santander">Banco Santander</option>
+      <option value="nubank">Nubank</option>
+      <option value="safra">Banco Safra</option>
+      <option value="sicredi">Sicredi</option>
+      <option value="banrisul">Banrisul</option>
+    </optgroup>
+    <optgroup label="💳 CARTEIRAS DIGITAIS">
+      <option value="mercadopago">Mercado Pago</option>
+      <option value="picpay">PicPay</option>
+      <option value="pagbank">PagBank</option>
+    </optgroup>
+    <optgroup label="💳 MAQUININHAS / ADQUIRENTES">
+      <option value="stone">Stone / Ton</option>
+      <option value="cielo">Cielo</option>
+      <option value="rede">Rede</option>
+      <option value="getnet">Getnet</option>
+      <option value="pagseguro">PagSeguro</option>
+      <option value="safrapay">SafraPay</option>
+      <option value="bin">Bin</option>
+      <option value="vero">Vero</option>
+      <option value="crefisa">Crefisa</option>
+      <option value="sumup">SumUp</option>
+    </optgroup>
+    <optgroup label="🛒 PDVs, CAIXAS E SISTEMAS">
+      <option value="pdv-mercadopago">Mercado Pago PDV</option>
+      <option value="pdv-pagbank">PagBank PDV</option>
+      <option value="tiny">Tiny ERP / PDV</option>
+      <option value="omie">Omie</option>
+      <option value="vtex">VTEX</option>
+      <option value="bling">Bling</option>
+      <option value="loja-integrada">Loja Integrada</option>
+      <option value="outro">Outro sistema com Webhook</option>
+    </optgroup>
+  </select>
+</div>
+
+<!-- PASSO 2: LINK EXCLUSIVO -->
+<div id="area-link" class="bloco oculto">
+  <label class="label">2. Seu link exclusivo:</label>
+  <div class="link-area">
+    <span id="link-exclusivo" class="link-texto"></span>
+    <button class="btn-copiar" onclick="copiarLink()">📋 Copiar</button>
+  </div>
+  <p class="dica">Único para sua conta — não compartilhe.</p>
+</div>
+
+<!-- PASSO 3: INSTRUÇÕES -->
+<div id="area-instrucoes" class="bloco oculto">
+  <div class="instrucoes">
+    <h4>📝 3. Onde colar o link no seu sistema:</h4>
+    <ol id="passos-sistema" class="passos"></ol>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let CLIENTE_ID = null;
+
+// Instruções por sistema
+const guias = {
+  inter: `<li>Acesse App/Portal → Pix → Minhas Chaves</li><li>Selecione sua chave → Configurar Notificações/Webhook</li><li>Cole o link → Salve</li>`,
+  bradesco: `<li>Área Pix → Integrações → Webhooks</li><li>Adicione novo → Cole o link</li><li>Ative eventos → Salve</li>`,
+  itau: `<li>Pix → Gerenciar Chaves → Notificações</li><li>Informe a URL → Confirme</li>`,
+  caixa: `<li>Menu Pix → Serviços → Webhooks</li><li>Cadastrar → Cole o link → Salve</li>`,
+  'banco-brasil': `<li>Pix → Integrações → Notificações Automáticas</li><li>Cole o link → Ative eventos</li>`,
+  santander: `<li>Pix → Configurações → Avisos por Webhook</li>`,
+  nubank: `<li>Área Pix → Recebimentos → Notificações/Webhook</li>`,
+  sicredi: `<li>Pix → Ferramentas → Integrações</li>`,
+  banrisul: `<li>Pix → Configurações → Webhooks</li>`,
+  mercadopago: `<li>Conta → Ferramentas → Webhooks</li><li>Crie novo → Cole o link</li><li>Eventos: pagamento.created, payment.updated</li>`,
+  picpay: `<li>Loja/Conta → Integrações → Notificações</li>`,
+  pagbank: `<li>Configurações → Integrações → Webhooks</li>`,
+  stone: `<li>Ferramentas → Integrações → Webhooks</li><li>Adicione URL → Salve</li>`,
+  cielo: `<li>Portal Cielo → API e Webhooks → Configurar</li>`,
+  rede: `<li>Meu Negócio → Integrações → Notificações</li>`,
+  getnet: `<li>Minha Conta → Integrações → Webhooks</li>`,
+  pagseguro: `<li>Vendas → Preferências → Notificações</li>`,
+  sumup: `<li>Configurações → Integrações → Webhook</li>`,
+  'pdv-mercadopago': `<li>PDV → Configurações → Integrações/Webhooks</li>`,
+  'pdv-pagbank': `<li>Menu PDV → Integrações → Notificações</li>`,
+  tiny: `<li>Configurações → Integrações → Webhooks de Venda</li>`,
+  omie: `<li>Configurações → Integrações → Notificações</li>`,
+  vtex: `<li>Configurações → Loja → Webhooks</li>`,
+  bling: `<li>Configurações → Integrações → Webhooks</li>`,
+  'loja-integrada': `<li>Configurações → Integrações → Notificações</li>`,
+  outro: `<li>Procure por: <strong>Integrações / Webhooks / Notificações / Avisos</strong></li><li>Cole o link no campo URL</li><li>Selecione eventos de pagamento</li><li>Salve</li>`
+};
+
+async function verificarLogin() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return window.location.href = 'index.html';
+
+  const { data } = await supabase
+    .from('estabelecimentos')
+    .select('cliente_id')
+    .eq('usuario_id', session.user.id)
+    .single();
+  
+  CLIENTE_ID = data?.cliente_id;
+}
+
+function gerarLink() {
+  const sistema = document.getElementById('sistema').value;
+  if (!sistema || !CLIENTE_ID) return;
+
+  const link = `${SUPABASE_URL}/functions/v1/receber-pagamentos?cliente=${CLIENTE_ID}&origem=${sistema}`;
+  document.getElementById('link-exclusivo').textContent = link;
+  document.getElementById('area-link').classList.remove('oculto');
+
+  const passos = guias[sistema] || guias.outro;
+  document.getElementById('passos-sistema').innerHTML = passos;
+  document.getElementById('area-instrucoes').classList.remove('oculto');
+}
+
+function copiarLink() {
+  navigator.clipboard.writeText(document.getElementById('link-exclusivo').textContent)
+    .then(() => alert('✅ Link copiado! Agora cole no seu sistema.'))
+    .catch(() => alert('❌ Copie manualmente.'));
+}
+
+verificarLogin();
+</script>
+
+</body>
+</html>
