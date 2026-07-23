@@ -7,26 +7,36 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 360px; }
-        .logo-area { text-align: center; margin-bottom: 25px; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
+        .logo-area { text-align: center; margin-bottom: 30px; }
         .logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
         .logo-icone { width: 45px; height: 45px; }
         .logo-texto { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 0; }
         .logo-texto span { color: #2563eb; }
         .slogan { color: #64748b; font-size: 0.9rem; margin: 0; }
-        .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
-        .tab-btn { flex: 1; border: none; background: none; padding: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: #888; }
-        .tab-btn.active { color: #2563eb; border-bottom: 2px solid #2563eb; margin-bottom: -2px; }
+
+        .tela-inicial { display: flex; flex-direction: column; gap: 15px; }
+        .btn-inicial { background: #2563eb; color: white; padding: 14px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-inicial:hover { background: #1d4ed8; }
+        .btn-secundario { background: #e2e8f0; color: #1e293b; }
+        .btn-secundario:hover { background: #cbd5e1; }
+
+        .area-formularios { display: none; }
+        .voltar { text-align: left; margin-bottom: 15px; }
+        .btn-voltar { background: none; border: none; color: #2563eb; font-size: 14px; cursor: pointer; padding: 0; }
         .form-panel { display: none; }
         .form-panel.active { display: block; }
-        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        input { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        input[readonly] { background: #f9f9f9; color: #555; cursor: not-allowed; }
+        button { width: 100%; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         button:hover { background: #1d4ed8; }
         .links { text-align: center; margin-top: 15px; }
         .links a { color: #2563eb; text-decoration: none; font-size: 14px; }
         .aviso { margin-top: 10px; padding: 12px; border-radius: 4px; display: none; font-size: 14px; font-weight: 500; word-break: break-word; }
         .erro { background: #fde2e2; color: #b00000; border: 1px solid #fecaca; }
         .sucesso { background: #e2f9e2; color: #006400; border: 1px solid #bbf7d0; }
+        .linha-dupla { display: flex; gap: 10px; }
+        .linha-dupla input { flex: 1; }
     </style>
 </head>
 <body>
@@ -42,34 +52,54 @@
             <p class="slogan">Confirmação segura de pagamentos</p>
         </div>
 
-        <div class="tabs">
-            <button id="btn-login" class="tab-btn" onclick="switchTab('login')">Login</button>
-            <button id="btn-cadastro" class="tab-btn active" onclick="switchTab('cadastro')">Cadastro</button>
+        <div id="tela-inicial" class="tela-inicial">
+            <button class="btn-inicial" onclick="mostrarFormulario('login')">Entrar</button>
+            <button class="btn-inicial btn-secundario" onclick="mostrarFormulario('cadastro')">Criar Conta</button>
         </div>
 
-        <div id="login" class="form-panel">
-            <form id="form-login">
-                <input type="email" id="login-email" placeholder="Seu e-mail" required>
-                <input type="password" id="login-senha" placeholder="Sua senha" required>
-                <div id="avisoLogin" class="aviso"></div>
-                <button type="submit">Entrar</button>
-            </form>
-            <div class="links">
-                <a href="#" onclick="recuperarSenha()">Esqueceu a senha?</a>
+        <div id="area-formularios" class="area-formularios">
+            <div class="voltar">
+                <button class="btn-voltar" onclick="voltarInicio()">← Voltar</button>
             </div>
-        </div>
 
-        <div id="cadastro" class="form-panel active">
-            <form id="form-cadastro">
-                <input type="text" id="cad-nome" placeholder="Nome Completo / Razão Social" required>
-                <input type="text" id="cad-documento" placeholder="CPF (11) ou CNPJ (14)" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')" required>
-                <textarea id="cad-endereco" placeholder="Endereço Completo" required></textarea>
-                <input type="email" id="cad-email" placeholder="Seu e-mail" required>
-                <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6)" required minlength="6">
-                <input type="password" id="cad-conf-senha" placeholder="Confirmar senha" required minlength="6">
-                <div id="avisoCad" class="aviso"></div>
-                <button type="submit">Cadastrar</button>
-            </form>
+            <div id="login" class="form-panel">
+                <form id="form-login">
+                    <input type="email" id="login-email" placeholder="Seu e-mail" required>
+                    <input type="password" id="login-senha" placeholder="Sua senha" required>
+                    <div id="avisoLogin" class="aviso"></div>
+                    <button type="submit">Entrar</button>
+                </form>
+                <div class="links">
+                    <a href="#" onclick="recuperarSenha()">Esqueceu a senha?</a>
+                </div>
+            </div>
+
+            <div id="cadastro" class="form-panel">
+                <form id="form-cadastro">
+                    <input type="text" id="cad-nome" placeholder="Nome Completo / Razão Social" required>
+                    <input type="text" id="cad-documento" placeholder="CPF (11) ou CNPJ (14)" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                    
+                    <input type="text" id="cad-cep" placeholder="Digite o CEP (apenas números)" maxlength="8" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                    
+                    <input type="text" id="cad-rua" placeholder="Rua" readonly required>
+                    <div class="linha-dupla">
+                        <input type="text" id="cad-numero" placeholder="Número" required>
+                        <input type="text" id="cad-bairro" placeholder="Bairro" readonly required>
+                    </div>
+                    <div class="linha-dupla">
+                        <input type="text" id="cad-cidade" placeholder="Cidade" readonly required>
+                        <input type="text" id="cad-estado" placeholder="UF" maxlength="2" readonly required>
+                    </div>
+
+                    <input type="hidden" id="cad-endereco">
+
+                    <input type="email" id="cad-email" placeholder="Seu e-mail" required>
+                    <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6)" required minlength="6">
+                    <input type="password" id="cad-conf-senha" placeholder="Confirmar senha" required minlength="6">
+                    <div id="avisoCad" class="aviso"></div>
+                    <button type="submit">Cadastrar</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -78,13 +108,20 @@
         const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function switchTab(tabName) {
+        function mostrarFormulario(tipo) {
+            document.getElementById('tela-inicial').style.display = 'none';
+            document.getElementById('area-formularios').style.display = 'block';
             document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            document.getElementById(`btn-${tabName}`).classList.add('active');
+            document.getElementById(tipo).classList.add('active');
             limparAvisos();
         }
+
+        function voltarInicio() {
+            document.getElementById('area-formularios').style.display = 'none';
+            document.getElementById('tela-inicial').style.display = 'flex';
+            limparAvisos();
+        }
+
         function mostrarAviso(id, texto, tipo) {
             const el = document.getElementById(id);
             el.textContent = texto;
@@ -95,14 +132,44 @@
             document.querySelectorAll('.aviso').forEach(el => el.style.display = 'none');
         }
 
+        // PREENCHIMENTO AUTOMÁTICO VIA CEP
+        document.getElementById('cad-cep').addEventListener('blur', async () => {
+            const cep = document.getElementById('cad-cep').value.replace(/\D/g,'');
+            if (cep.length !== 8) return;
+
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await res.json();
+                if (dados.erro) throw new Error('CEP não encontrado');
+
+                document.getElementById('cad-rua').value = dados.logradouro || '';
+                document.getElementById('cad-bairro').value = dados.bairro || '';
+                document.getElementById('cad-cidade').value = dados.localidade || '';
+                document.getElementById('cad-estado').value = dados.uf || '';
+                document.getElementById('cad-numero').focus();
+            } catch {
+                mostrarAviso('avisoCad','❌ CEP inválido ou não encontrado','erro');
+                ['cad-rua','cad-bairro','cad-cidade','cad-estado'].forEach(id=>document.getElementById(id).value='');
+            }
+        });
+
+        // CADASTRO
         document.getElementById('form-cadastro').addEventListener('submit', async e => {
             e.preventDefault(); limparAvisos();
+
             const nome = document.getElementById('cad-nome').value.trim();
             const doc = document.getElementById('cad-documento').value.trim().replace(/\D/g,'');
-            const endereco = document.getElementById('cad-endereco').value.trim();
+            const rua = document.getElementById('cad-rua').value.trim();
+            const numero = document.getElementById('cad-numero').value.trim();
+            const bairro = document.getElementById('cad-bairro').value.trim();
+            const cidade = document.getElementById('cad-cidade').value.trim();
+            const estado = document.getElementById('cad-estado').value.trim();
             const email = document.getElementById('cad-email').value.trim();
             const senha = document.getElementById('cad-senha').value;
             const conf = document.getElementById('cad-conf-senha').value;
+
+            // Monta endereço completo
+            document.getElementById('cad-endereco').value = `${rua}, ${numero} - ${bairro} - ${cidade}/${estado}`;
 
             if (![11,14].includes(doc.length)) return mostrarAviso('avisoCad','❌ CPF 11 ou CNPJ 14 números','erro');
             if (senha !== conf) return mostrarAviso('avisoCad','❌ Senhas não coincidem','erro');
@@ -110,63 +177,61 @@
 
             mostrarAviso('avisoCad','⏳ Criando conta...','sucesso');
             try {
-                // Passo 1: cria o usuário de autenticação
                 const authRes = await _supabase.auth.signUp({ email, password: senha });
                 if (authRes.error) throw authRes.error;
-                if (!authRes.data.user) throw new Error('Usuário não foi criado');
+                if (!authRes.data.user) throw new Error('Não foi possível criar o usuário');
 
-                // Passo 2: insere dados SEM exigir cliente_id
+                await _supabase.auth.setSession({
+                    access_token: authRes.data.session.access_token,
+                    refresh_token: authRes.data.session.refresh_token
+                });
+
                 const perfilRes = await _supabase.from('estabelecimentos').insert({
                     usuario_id: authRes.data.user.id,
                     nome: nome,
                     empresa: nome,
                     cpf_cnpj: doc,
-                    endereco: endereco,
+                    endereco: document.getElementById('cad-endereco').value,
                     email: email
                 });
-
                 if (perfilRes.error) throw perfilRes.error;
 
-                mostrarAviso('avisoCad','✅ Cadastro realizado com sucesso!','sucesso');
-                setTimeout(()=>switchTab('login'),1500);
-            } catch (erro) {
-                console.error('ERRO COMPLETO NO CONSOLE:', erro);
-                let mensagem = '';
-                if (erro && typeof erro === 'object') {
-                    mensagem = erro.message || erro.details || erro.hint || JSON.stringify(erro);
-                } else {
-                    mensagem = String(erro);
-                }
-                mensagem = mensagem.replace(/[{}"\\]/g,' ').trim();
-                mostrarAviso('avisoCad','❌ ' + mensagem,'erro');
+                mostrarAviso('avisoCad','✅ Cadastro ok! Você já pode entrar.','sucesso');
+                setTimeout(()=>mostrarFormulario('login'),2000);
+            } catch (e) {
+                console.error('ERRO:', e);
+                const msg = e?.message || 'Erro ao realizar cadastro';
+                mostrarAviso('avisoCad','❌ ' + msg,'erro');
             }
         });
 
+        // LOGIN
         document.getElementById('form-login').addEventListener('submit', async e => {
             e.preventDefault(); limparAvisos();
             const email = document.getElementById('login-email').value.trim();
             const senha = document.getElementById('login-senha').value;
-            if (!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha tudo','erro');
+            if (!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha e-mail e senha','erro');
             mostrarAviso('avisoLogin','⏳ Entrando...','sucesso');
             try {
-                const loginRes = await _supabase.auth.signInWithPassword({email, password: senha});
-                if (loginRes.error) throw loginRes.error;
+                const login = await _supabase.auth.signInWithPassword({email, password: senha});
+                if (login.error) throw login.error;
                 mostrarAviso('avisoLogin','✅ Acesso liberado!','sucesso');
                 setTimeout(()=>location.href='pagcheck.html',1000);
-            } catch (erro) {
-                mostrarAviso('avisoLogin','❌ ' + (erro?.message || 'Erro'),'erro');
+            } catch (e) {
+                mostrarAviso('avisoLogin','❌ ' + (e?.message || 'Erro ao acessar'),'erro');
             }
         });
 
+        // RECUPERAR SENHA
         async function recuperarSenha(){
-            const email = prompt('Seu e-mail:');
+            const email = prompt('Digite seu e-mail cadastrado:');
             if (!email) return;
             try {
-                const recRes = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:location.href});
-                if (recRes.error) throw recRes.error;
-                alert('✅ Link enviado!');
-            } catch (erro) {
-                alert('❌ ' + erro.message);
+                const r = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:location.href});
+                if (r.error) throw r.error;
+                alert('✅ Link de redefinição enviado para seu e-mail!');
+            } catch (e) {
+                alert('❌ ' + e.message);
             }
         }
     </script>
