@@ -110,30 +110,35 @@
 
             mostrarAviso('avisoCad','⏳ Criando conta...','sucesso');
             try {
-                const auth = await _supabase.auth.signUp({email, password: senha});
-                if (auth.error) throw auth.error;
-                if (!auth.data.user) throw new Error('Usuário não foi criado');
+                // Passo 1: cria o usuário de autenticação
+                const authRes = await _supabase.auth.signUp({ email, password: senha });
+                if (authRes.error) throw authRes.error;
+                if (!authRes.data.user) throw new Error('Usuário não foi criado');
 
-                const perfil = await _supabase.from('estabelecimentos').insert({
-                    usuario_id: auth.data.user.id,
-                    cliente_id: auth.data.user.id,
-                    nome, empresa: nome, cpf_cnpj: doc, endereco, email
+                // Passo 2: insere dados SEM exigir cliente_id
+                const perfilRes = await _supabase.from('estabelecimentos').insert({
+                    usuario_id: authRes.data.user.id,
+                    nome: nome,
+                    empresa: nome,
+                    cpf_cnpj: doc,
+                    endereco: endereco,
+                    email: email
                 });
-                if (perfil.error) throw perfil.error;
 
-                mostrarAviso('avisoCad','✅ Cadastro ok!','sucesso');
+                if (perfilRes.error) throw perfilRes.error;
+
+                mostrarAviso('avisoCad','✅ Cadastro realizado com sucesso!','sucesso');
                 setTimeout(()=>switchTab('login'),1500);
-            } catch (e) {
-                console.error('ERRO COMPLETO:', e);
-                let msg = '';
-                if (typeof e === 'object' && e !== null) {
-                    msg = e.message || e.msg || e.details || e.hint || JSON.stringify(e);
+            } catch (erro) {
+                console.error('ERRO COMPLETO NO CONSOLE:', erro);
+                let mensagem = '';
+                if (erro && typeof erro === 'object') {
+                    mensagem = erro.message || erro.details || erro.hint || JSON.stringify(erro);
                 } else {
-                    msg = String(e);
+                    mensagem = String(erro);
                 }
-                msg = msg.replace(/[{}"\\]/g,' ').trim();
-                if (!msg || msg === 'null') msg = 'Erro interno no cadastro';
-                mostrarAviso('avisoCad','❌ ' + msg,'erro');
+                mensagem = mensagem.replace(/[{}"\\]/g,' ').trim();
+                mostrarAviso('avisoCad','❌ ' + mensagem,'erro');
             }
         });
 
@@ -144,12 +149,12 @@
             if (!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha tudo','erro');
             mostrarAviso('avisoLogin','⏳ Entrando...','sucesso');
             try {
-                const login = await _supabase.auth.signInWithPassword({email, password: senha});
-                if (login.error) throw login.error;
+                const loginRes = await _supabase.auth.signInWithPassword({email, password: senha});
+                if (loginRes.error) throw loginRes.error;
                 mostrarAviso('avisoLogin','✅ Acesso liberado!','sucesso');
                 setTimeout(()=>location.href='pagcheck.html',1000);
-            } catch (e) {
-                mostrarAviso('avisoLogin','❌ ' + (e?.message || 'Erro'),'erro');
+            } catch (erro) {
+                mostrarAviso('avisoLogin','❌ ' + (erro?.message || 'Erro'),'erro');
             }
         });
 
@@ -157,11 +162,11 @@
             const email = prompt('Seu e-mail:');
             if (!email) return;
             try {
-                const r = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:location.href});
-                if (r.error) throw r.error;
+                const recRes = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:location.href});
+                if (recRes.error) throw recRes.error;
                 alert('✅ Link enviado!');
-            } catch (e) {
-                alert('❌ ' + e.message);
+            } catch (erro) {
+                alert('❌ ' + erro.message);
             }
         }
     </script>
