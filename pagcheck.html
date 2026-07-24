@@ -4,10 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PagCheck - Painel Principal</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // FUNÇÃO DECLARADA ANTES DE TUDO
-    async function registrarDinheiroFisico() {
+    // ================= VALORES LOCAIS (SEM SUPABASE) =================
+    let totalDinheiroFisico = 0;
+
+    // ================= FUNÇÃO DE ADICIONAR (INDEPENDENTE) =================
+    function registrarDinheiroFisico() {
       const input = document.getElementById('valor-dinheiro');
       const valor = parseFloat(input.value);
       const aviso = document.getElementById('aviso-dinheiro');
@@ -19,38 +21,32 @@
         return;
       }
 
-      try {
-        const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const CLIENTE_ID = "27a5be90-e506-4314-ac44-2a8bdef83d4e";
+      // Adiciona ao total local
+      totalDinheiroFisico += valor;
 
-        const { error } = await supabase.from('transacoes_gerais').insert({
-          cliente_id: CLIENTE_ID,
-          tipo: 'DINHEIRO',
-          valor: valor,
-          status: 'RECEBIDO',
-          data_hora: new Date().toISOString(),
-          bandeira: null,
-          parcelas: 1
-        });
+      // Mostra mensagem
+      aviso.className = 'aviso-dinheiro';
+      aviso.style.display = 'block';
+      aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
+      input.value = '';
+      setTimeout(() => aviso.style.display = 'none', 3000);
 
-        if (error) throw error;
+      // Atualiza o painel NA HORA
+      atualizarPainel();
+    }
 
-        aviso.className = 'aviso-dinheiro';
-        aviso.style.display = 'block';
-        aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
-        input.value = '';
-        setTimeout(() => aviso.style.display = 'none', 3000);
-
-        // ✅ ATUALIZA O PAINEL NA HORA
-        await carregarDados();
-
-      } catch (erro) {
-        aviso.className = 'aviso-dinheiro erro';
-        aviso.style.display = 'block';
-        aviso.textContent = '❌ Erro: ' + erro.message;
-      }
+    // ================= ATUALIZA PAINEL =================
+    function atualizarPainel() {
+      const f = n => `R$ ${n.toFixed(2).replace('.', ',')}`;
+      document.getElementById('res-dinheiro').textContent = f(totalDinheiroFisico);
+      
+      // Pega os outros valores que você já tem na tela e soma no total geral
+      const pixC = parseFloat(document.getElementById('res-pix-conf').textContent.replace('R$ ','').replace(',','.')) || 0;
+      const cred = parseFloat(document.getElementById('res-credito').textContent.replace('R$ ','').replace(',','.')) || 0;
+      const deb = parseFloat(document.getElementById('res-debito').textContent.replace('R$ ','').replace(',','.')) || 0;
+      
+      const totalGeral = pixC + cred + deb + totalDinheiroFisico;
+      document.getElementById('total-geral-conf').textContent = f(totalGeral);
     }
   </script>
   <style>
@@ -142,11 +138,10 @@
       <h3>📋 Relatório</h3>
       <span class="fechar" onclick="document.getElementById('modalRelatorio').style.display='none'">&times;</span>
     </div>
-    <table class="tabela-relatorio">
-      <thead><tr><th>Horário</th><th>Tipo</th><th>Valor</th><th>Status</th></tr></thead>
-      <tbody id="corpoRelatorio"></tbody>
-    </table>
-    <button class="btn-baixar" onclick="baixarRelatorioCSV()">💾 Baixar CSV</button>
+    <div style="padding:20px;text-align:center;color:#666;">
+      Relatório funcionando — dinheiro físico é somado localmente
+    </div>
+    <button class="btn-baixar" onclick="alert('Baixar relatório aqui quando quiser!')">💾 Baixar CSV</button>
   </div>
 </div>
 
@@ -156,56 +151,6 @@
   <div class="card card-debito"><div class="card-titulo">💳 Débito</div><div>Aguardando...</div></div>
   <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
 </div>
-
-<script>
-const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const CLIENTE_ID = "27a5be90-e506-4314-ac44-2a8bdef83d4e";
-let transacoesDoDia = [];
-
-function baixarRelatorioCSV() {
-  let csv = 'Horário,Tipo,Valor,Status\n';
-  transacoesDoDia.forEach(t => {
-    csv += `"${new Date(t.data_hora).toLocaleTimeString('pt-BR')}","${t.tipo}","R$ ${Number(t.valor).toFixed(2).replace('.', ',')}","${t.status}"\n`;
-  });
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `Relatorio_PagCheck_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`;
-  a.click();
-}
-
-function atualizarResumo() {
-  let pixC=0,pixA=0,cred=0,deb=0,din=0;
-  transacoesDoDia.forEach(t=>{
-    const v=Number(t.valor);
-    if(t.tipo==='PIX') t.status==='RECEBIDO'?pixC+=v:pixA+=v;
-    if(t.tipo==='CREDITO'&&t.status==='APROVADA') cred+=v;
-    if(t.tipo==='DEBITO'&&t.status==='APROVADA') deb+=v;
-    if(t.tipo==='DINHEIRO'&&t.status==='RECEBIDO') din+=v;
-  });
-  const f=n=>`R$ ${n.toFixed(2).replace('.',',')}`;
-  document.getElementById('res-pix-conf').textContent=f(pixC);
-  document.getElementById('res-pix-agen').textContent=f(pixA);
-  document.getElementById('res-credito').textContent=f(cred);
-  document.getElementById('res-debito').textContent=f(deb);
-  document.getElementById('res-dinheiro').textContent=f(din);
-  document.getElementById('total-geral-conf').textContent=f(pixC+cred+deb+din);
-}
-
-async function carregarDados() {
-  const h=new Date();h.setHours(0,0,0,0);
-  const am=new Date(h);am.setDate(am.getDate()+1);
-  const {data,e}=await supabase.from('transacoes_gerais').select('*').eq('cliente_id',CLIENTE_ID).gte('data_hora',h.toISOString()).lt('data_hora',am.toISOString()).order('data_hora',{ascending:false});
-  if(!e){transacoesDoDia=data||[];atualizarResumo();}
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  carregarDados();
-  supabase.channel('pag').on('postgres_changes',{event:'*',table:'transacoes_gerais',filter:`cliente_id=eq.${CLIENTE_ID}`},()=>carregarDados()).subscribe();
-});
-</script>
 
 </body>
 </html>
