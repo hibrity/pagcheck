@@ -1,0 +1,24 @@
+<button onclick="testarLeitura()">Clique para Testar Leitura</button>
+<div id="resultado"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+const SUPABASE_ANON_KEY = "COLE_AQUI_A_CHAVE_PUBLICA_ANON"; // ← sua chave pública
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function testarLeitura(){
+  const { data, error } = await supabase
+    .from('transacoes_gerais')
+    .select('*')
+    .eq('cliente_id', '27a5be90-e506-4314-ac44-2a8bdef83d4e')
+    .order('data_hora', {ascending: false});
+
+  if(error) {
+    document.getElementById('resultado').innerHTML = `<pre>ERRO: ${JSON.stringify(error,null,2)}</pre>`;
+  } else {
+    document.getElementById('resultado').innerHTML = `<pre>SUCESSO: ${JSON.stringify(data,null,2)}</pre>`;
+  }
+}
+</script>
