@@ -10,16 +10,16 @@
     body { background:#f5f7fa; padding:20px; max-width:850px; margin:0 auto; min-height:100vh; }
     .cabecalho { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding-bottom:12px; border-bottom:1px solid #e2e8f0; flex-wrap:wrap; gap:10px; }
     .titulo { font-size:1.5rem; font-weight:bold; color:#1e293b; }
-    .btn-voltar { background:#64748b; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:bold; transition:background 0.2s; }
-    .btn-voltar:hover { background:#475569; }
+    .btn-voltar { background:#64748b; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:bold; }
     .aviso-seg { background:#eff6ff; border-left:4px solid #2563eb; padding:15px; border-radius:8px; margin-bottom:25px; }
     .aviso-seg p { font-size:0.95rem; color:#1e40af; line-height:1.5; margin:0; }
     .bloco { background:white; padding:18px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05); margin-bottom:20px; }
     .label { display:block; font-weight:bold; margin-bottom:10px; color:#374151; font-size:1rem; }
-    .select { width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; font-size:1rem; background:white; }
+    .select { width:100%; padding:12px; border:2px solid #cbd5e1; border-radius:6px; font-size:1rem; background:white; cursor:pointer; }
+    .select:focus { border-color:#2563eb; outline:none; }
     .link-area { background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:15px; margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .link-texto { flex:1; min-width:280px; font-size:0.85rem; color:#1e293b; word-break:break-all; font-family:monospace; }
-    .btn-copiar { background:#2563eb; color:white; border:none; padding:10px 14px; border-radius:6px; cursor:pointer; font-weight:bold; transition:background 0.2s; }
+    .btn-copiar { background:#2563eb; color:white; border:none; padding:10px 14px; border-radius:6px; cursor:pointer; font-weight:bold; }
     .btn-copiar:hover { background:#1d4ed8; }
     .dica { font-size:0.85rem; color:#64748b; margin-top:8px; }
     .instrucoes { margin-top:15px; padding-top:15px; border-top:1px solid #f1f5f9; }
@@ -27,7 +27,6 @@
     .passos { padding-left:20px; margin:0; }
     .passos li { margin:6px 0; font-size:0.9rem; color:#374151; }
     .oculto { display:none !important; }
-    .aviso-erro { background:#fee2e2; color:#dc2626; padding:12px; border-radius:6px; margin-top:10px; display:none; }
   </style>
 </head>
 <body>
@@ -43,7 +42,7 @@
 
 <div class="bloco">
   <label class="label">1. Selecione onde você recebe pagamentos:</label>
-  <select id="sistema" class="select">
+  <select id="sistema" class="select" onchange="executarGerarLink()">
     <option value="">Escolha...</option>
     <optgroup label="🏦 BANCOS (Pix e Transações)">
       <option value="inter">Banco Inter</option>
@@ -85,7 +84,6 @@
       <option value="outro">Outro sistema com Webhook</option>
     </optgroup>
   </select>
-  <div id="aviso-erro" class="aviso-erro"></div>
 </div>
 
 <div id="area-link" class="bloco oculto">
@@ -105,13 +103,9 @@
 </div>
 
 <script>
-// ================= CONFIGURAÇÃO =================
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const CLIENTE_ID = "27a5be90-e506-4314-ac44-2a8bdef83d4e";
 
-// ================= INSTRUÇÕES =================
 const guias = {
   inter: `<li>Acesse App/Portal → Pix → Minhas Chaves</li><li>Selecione sua chave → Configurar Notificações/Webhook</li><li>Cole o link → Salve</li>`,
   bradesco: `<li>Área Pix → Integrações → Webhooks</li><li>Adicione novo → Cole o link</li><li>Ative eventos → Salve</li>`,
@@ -141,43 +135,24 @@ const guias = {
   outro: `<li>Procure por: <strong>Integrações / Webhooks / Notificações / Avisos</strong></li><li>Cole o link no campo URL</li><li>Selecione eventos de pagamento</li><li>Salve</li>`
 };
 
-// ================= DISPARADOR AUTOMÁTICO =================
-document.addEventListener('DOMContentLoaded', () => {
-  const select = document.getElementById('sistema');
-  select.addEventListener('change', gerarLink);
-  console.log("Página pronta — selecione um sistema abaixo");
-});
-
-// ================= GERA LINK =================
-function gerarLink() {
+// Função direta, sem enrolação
+function executarGerarLink() {
   const sistema = document.getElementById('sistema').value;
-  const aviso = document.getElementById('aviso-erro');
+  if (!sistema) return;
 
-  if (!sistema) {
-    aviso.style.display = 'block';
-    aviso.textContent = '⚠️ Escolha um sistema na lista acima';
-    document.getElementById('area-link').classList.add('oculto');
-    document.getElementById('area-instrucoes').classList.add('oculto');
-    return;
-  }
-
-  aviso.style.display = 'none';
+  // Monta o link na hora
   const link = `${SUPABASE_URL}/functions/v1/receber-pagamentos?cliente=${CLIENTE_ID}&origem=${sistema}`;
-  
   document.getElementById('link-exclusivo').textContent = link;
+  
+  // Mostra as áreas
   document.getElementById('area-link').classList.remove('oculto');
-
-  const passos = guias[sistema] || guias.outro;
-  document.getElementById('passos-sistema').innerHTML = passos;
+  document.getElementById('passos-sistema').innerHTML = guias[sistema] || guias.outro;
   document.getElementById('area-instrucoes').classList.remove('oculto');
 }
 
-// ================= COPIAR LINK =================
 function copiarLink() {
-  const texto = document.getElementById('link-exclusivo').textContent;
-  navigator.clipboard.writeText(texto)
-    .then(() => alert('✅ Link copiado! Agora cole no seu sistema.'))
-    .catch(() => alert('❌ Copie manualmente.'));
+  navigator.clipboard.writeText(document.getElementById('link-exclusivo').textContent)
+    .then(() => alert('✅ Link copiado!'));
 }
 </script>
 
