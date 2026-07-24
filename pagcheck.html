@@ -7,261 +7,57 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { 
-      background: #f5f7fa; 
-      padding: 16px; 
-      max-width: 1350px; 
-      margin: 0 auto; 
-      min-height: 100vh;
-    }
-
-    .header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      flex-wrap: wrap; 
-      gap: 12px; 
-      margin-bottom: 16px; 
-      text-align: center; 
-    }
+    body { background: #f5f7fa; padding: 16px; max-width: 1350px; margin: 0 auto; min-height: 100vh; }
+    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; text-align: center; }
     .logo { display: flex; align-items: center; gap: 10px; }
     .logo-icone { width: 40px; height: 40px; }
     .logo-texto { font-size: 2rem; font-weight: 800; color: #1e293b; }
     .logo-texto span { color: #2563eb; }
     .slogan { width: 100%; color: #64748b; font-size: 1rem; margin-top: 8px; }
-    
-    .btn-config { 
-      background: #7c3aed; 
-      color: white; 
-      border: none; 
-      padding: 10px 16px; 
-      border-radius: 6px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      font-size: 0.95rem;
-      transition: background 0.2s;
-    }
+    .btn-config { background: #7c3aed; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: background 0.2s; }
     .btn-config:hover { background: #6d28d9; }
-
-    .aviso-seguranca { 
-      background: #fffbeb; 
-      color: #92400e; 
-      padding: 12px; 
-      border-radius: 6px; 
-      border-left: 3px solid #f59e0b; 
-      max-width: 600px; 
-      margin: 0 auto 20px; 
-      text-align: center;
-    }
-    .valor-esperado { 
-      background: #e0f2fe; 
-      border-radius: 8px; 
-      padding: 16px; 
-      max-width: 600px; 
-      margin: 0 auto 20px; 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
+    .aviso-seguranca { background: #fffbeb; color: #92400e; padding: 12px; border-radius: 6px; border-left: 3px solid #f59e0b; max-width: 600px; margin: 0 auto 20px; text-align: center; }
+    .valor-esperado { background: #e0f2fe; border-radius: 8px; padding: 16px; max-width: 600px; margin: 0 auto 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .grupo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
-    .valor-esperado input { 
-      flex: 1; 
-      min-width: 220px; 
-      padding: 10px; 
-      border: 1px solid #2563eb; 
-      border-radius: 6px; 
-      font-size: 1rem; 
-    }
-    .valor-esperado button { 
-      padding: 10px 20px; 
-      background: #2563eb; 
-      color: white; 
-      border: none; 
-      border-radius: 6px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      font-size: 1rem;
-      transition: background 0.2s;
-    }
+    .valor-esperado input { flex: 1; min-width: 220px; padding: 10px; border: 1px solid #2563eb; border-radius: 6px; font-size: 1rem; }
+    .valor-esperado button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .valor-esperado button:hover { background: #1d4ed8; }
-    .aviso-valor { 
-      margin-top: 10px; 
-      display: none; 
-      padding: 10px; 
-      border-radius: 6px; 
-      font-weight: bold; 
-      text-align: center; 
-      background: #fee2e2; 
-      color: #dc2626; 
-    }
-    .resumo { 
-      background: white; 
-      border-radius: 8px; 
-      padding: 20px; 
-      margin-bottom: 24px; 
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
-      max-width: 850px; 
-      margin-left: auto; 
-      margin-right: auto; 
-    }
-    .resumo-cabecalho { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 15px; 
-      flex-wrap: wrap; 
-      gap: 10px; 
-    }
-    .btn-relatorio { 
-      padding: 8px 16px; 
-      background: #16a34a; 
-      color: white; 
-      border: none; 
-      border-radius: 6px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      font-size: 0.9rem;
-      transition: background 0.2s;
-    }
+    .aviso-valor { margin-top: 10px; display: none; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; background: #fee2e2; color: #dc2626; }
+    .resumo { background: white; border-radius: 8px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); max-width: 850px; margin-left: auto; margin-right: auto; }
+    .resumo-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+    .btn-relatorio { padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
     .btn-relatorio:hover { background: #15803d; }
-    .resumo-grade { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-      gap: 12px; 
-    }
-    .resumo-linha { 
-      display: flex; 
-      justify-content: space-between; 
-      padding: 8px 0; 
-      font-size: 0.95rem; 
-      border-bottom: 1px solid #f1f5f9; 
-    }
+    .resumo-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .resumo-linha { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.95rem; border-bottom: 1px solid #f1f5f9; }
     .resumo-valor-conf { font-weight: bold; color: #16a34a; }
     .resumo-valor-agen { font-weight: bold; color: #f59e0b; }
-    .modal { 
-      display: none; 
-      position: fixed; 
-      z-index: 999; 
-      left: 0; 
-      top: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: rgba(0,0,0,0.5); 
-      overflow-y: auto;
-    }
-    .modal-conteudo { 
-      background: white; 
-      margin: 5% auto; 
-      padding: 24px; 
-      border-radius: 10px; 
-      width: 95%; 
-      max-width: 750px; 
-      animation: aparecer 0.3s ease;
-    }
-    @keyframes aparecer {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .modal-cabecalho { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 20px; 
-      border-bottom: 1px solid #eee; 
-      padding-bottom: 12px; 
-    }
-    .fechar { 
-      font-size: 28px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      color: #9ca3af; 
-      transition: color 0.2s;
-    }
+    .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow-y: auto; }
+    .modal-conteudo { background: white; margin: 5% auto; padding: 24px; border-radius: 10px; width: 95%; max-width: 750px; animation: aparecer 0.3s ease; }
+    @keyframes aparecer { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+    .fechar { font-size: 28px; font-weight: bold; cursor: pointer; color: #9ca3af; transition: color 0.2s; }
     .fechar:hover { color: #111827; }
-    .tabela-relatorio { 
-      width: 100%; 
-      border-collapse: collapse; 
-      margin-top: 15px; 
-      font-size: 0.9rem; 
-    }
-    .tabela-relatorio th, .tabela-relatorio td { 
-      border: 1px solid #e2e8f0; 
-      padding: 12px; 
-      text-align: left; 
-    }
+    .tabela-relatorio { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+    .tabela-relatorio th, .tabela-relatorio td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
     .tabela-relatorio th { background: #f8fafc; font-weight: bold; color: #374151; }
-    .total-geral { 
-      margin-top: 18px; 
-      text-align: right; 
-      font-size: 1.1rem; 
-      font-weight: bold; 
-      color: #1e293b;
-    }
-    .btn-baixar { 
-      margin-top: 18px; 
-      padding: 12px 20px; 
-      background: #2563eb; 
-      color: white; 
-      border: none; 
-      border-radius: 6px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      font-size: 1rem;
-      transition: background 0.2s;
-    }
+    .total-geral { margin-top: 18px; text-align: right; font-size: 1.1rem; font-weight: bold; color: #1e293b; }
+    .btn-baixar { margin-top: 18px; padding: 12px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .btn-baixar:hover { background: #1d4ed8; }
-    .cards { 
-      display: grid; 
-      gap: 18px; 
-      grid-template-columns: repeat(4, 1fr); 
-      margin-top: 20px;
-    }
+    .cards { display: grid; gap: 18px; grid-template-columns: repeat(4, 1fr); margin-top: 20px; }
     @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
-    .card { 
-      border-radius: 10px; 
-      padding: 18px; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
-      transition: all 0.3s ease; 
-    }
+    .card { border-radius: 10px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.3s ease; }
     .card:hover { transform: translateY(-3px); }
     .card-pix { background: #eff6ff; border-left: 4px solid #2563eb; }
     .card-credito { background: #faf5ff; border-left: 4px solid #7c3aed; }
     .card-debito { background: #f0fdf4; border-left: 4px solid #16a34a; }
     .card-notas { background: #fffbeb; border-left: 4px solid #f59e0b; }
-    .card-titulo { 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-      font-size: 1.1rem; 
-      font-weight: bold; 
-      margin-bottom: 12px; 
-      color: #1e293b;
-    }
-    .info-linha { 
-      display: flex; 
-      justify-content: space-between; 
-      padding: 6px 0; 
-      font-size: 0.9rem; 
-      border-bottom: 1px solid rgba(0,0,0,0.08); 
-    }
+    .card-titulo { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; color: #1e293b; }
+    .info-linha { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; border-bottom: 1px solid rgba(0,0,0,0.08); }
     .info-linha:last-child { border: none; }
     .info-valor { font-weight: bold; font-size: 1rem; color: #1e293b; }
-    .alerta-agendado { 
-      background: #fff7ed; 
-      border-radius: 6px; 
-      padding: 8px; 
-      margin-top: 10px; 
-      border-left: 3px solid #f97316; 
-      color: #c2410c; 
-      font-weight: bold; 
-      font-size: 0.85rem; 
-      text-align: center; 
-    }
-    .aviso-futuro { 
-      margin-top: 10px; 
-      font-size: 0.85rem; 
-      color: #64748b; 
-      text-align: center; 
-    }
+    .alerta-agendado { background: #fff7ed; border-radius: 6px; padding: 8px; margin-top: 10px; border-left: 3px solid #f97316; color: #c2410c; font-weight: bold; font-size: 0.85rem; text-align: center; }
+    .aviso-futuro { margin-top: 10px; font-size: 0.85rem; color: #64748b; text-align: center; }
   </style>
 </head>
 <body>
@@ -275,7 +71,6 @@
       </svg>
       <h1 class="logo-texto">Pag<span>Check</span></h1>
     </div>
-
     <button class="btn-config" onclick="window.location.href='configuracoes.html'">⚙️ Configurar Integrações</button>
     <p class="slogan">Confirmação direto do banco — sem golpes</p>
   </div>
@@ -349,14 +144,7 @@
 </div>
 
 <script>
-const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const CLIENTE_ID = "27a5be90-e506-4314-ac44-2a8bdef83d4e";
-let valorEsperado = null;
-let transacoesDoDia = [];
-
-// ✅ FUNÇÕES DOS BOTÕES DEFINIDAS PRIMEIRO
+// ====================== FUNÇÕES DOS BOTÕES PRIMEIRO DE TUDO ======================
 function definirValorEsperado() {
   const input = document.getElementById('valor-esperado');
   const valor = parseFloat(input.value);
@@ -366,7 +154,7 @@ function definirValorEsperado() {
     aviso.textContent = '❌ Digite um valor válido e maior que zero';
     return;
   }
-  valorEsperado = valor;
+  window.valorEsperado = valor;
   input.value = '';
   aviso.style.display = 'none';
   alert(`✅ Valor esperado definido: R$ ${valor.toFixed(2).replace('.', ',')}`);
@@ -377,10 +165,10 @@ function abrirRelatorio() {
   const corpo = document.getElementById('corpoRelatorio');
   corpo.innerHTML = '';
   let total = 0;
-  if (transacoesDoDia.length === 0) {
+  if (!window.transacoesDoDia || window.transacoesDoDia.length === 0) {
     corpo.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#64748b;">Nenhuma transação encontrada para hoje</td></tr>`;
   } else {
-    transacoesDoDia.forEach(t => {
+    window.transacoesDoDia.forEach(t => {
       total += Number(t.valor);
       const hora = new Date(t.data_hora).toLocaleTimeString('pt-BR');
       const det = t.bandeira ? `${t.bandeira} ${t.parcelas > 1 ? `(${t.parcelas}x)` : ''}` : '-';
@@ -403,11 +191,13 @@ function fecharRelatorio() {
 
 function baixarRelatorioCSV() {
   let csv = 'Horário,Tipo,Valor,Status,Detalhes\n';
-  transacoesDoDia.forEach(t => {
-    const hora = new Date(t.data_hora).toLocaleTimeString('pt-BR');
-    const det = t.bandeira ? `${t.bandeira} ${t.parcelas > 1 ? `(${t.parcelas}x)` : ''}` : '-';
-    csv += `"${hora}","${t.tipo}","R$ ${Number(t.valor).toFixed(2).replace('.', ',')}","${t.status}","${det}"\n`;
-  });
+  if (window.transacoesDoDia) {
+    window.transacoesDoDia.forEach(t => {
+      const hora = new Date(t.data_hora).toLocaleTimeString('pt-BR');
+      const det = t.bandeira ? `${t.bandeira} ${t.parcelas > 1 ? `(${t.parcelas}x)` : ''}` : '-';
+      csv += `"${hora}","${t.tipo}","R$ ${Number(t.valor).toFixed(2).replace('.', ',')}","${t.status}","${det}"\n`;
+    });
+  }
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
@@ -415,14 +205,23 @@ function baixarRelatorioCSV() {
   link.click();
 }
 
+// ====================== CONFIGURAÇÃO SUPABASE (DEPOIS DOS BOTÕES) ======================
+const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const CLIENTE_ID = "27a5be90-e506-4314-ac44-2a8bdef83d4e";
+window.transacoesDoDia = [];
+
 function atualizarResumo() {
   let pixC = 0, pixA = 0, cred = 0, deb = 0;
-  transacoesDoDia.forEach(t => {
-    const v = Number(t.valor);
-    if (t.tipo === 'PIX') t.status === 'RECEBIDO' ? pixC += v : pixA += v;
-    if (t.tipo === 'CREDITO' && t.status === 'APROVADA') cred += v;
-    if (t.tipo === 'DEBITO' && t.status === 'APROVADA') deb += v;
-  });
+  if (window.transacoesDoDia) {
+    window.transacoesDoDia.forEach(t => {
+      const v = Number(t.valor);
+      if (t.tipo === 'PIX') t.status === 'RECEBIDO' ? pixC += v : pixA += v;
+      if (t.tipo === 'CREDITO' && t.status === 'APROVADA') cred += v;
+      if (t.tipo === 'DEBITO' && t.status === 'APROVADA') deb += v;
+    });
+  }
   const formatar = (n) => `R$ ${n.toFixed(2).replace('.', ',')}`;
   document.getElementById('res-pix-conf').textContent = formatar(pixC);
   document.getElementById('res-pix-agen').textContent = formatar(pixA);
@@ -443,7 +242,7 @@ async function carregarTransacoes() {
       .lt('data_hora', amanha.toISOString())
       .order('data_hora', { ascending: false });
     if (error) throw error;
-    transacoesDoDia = data || [];
+    window.transacoesDoDia = data || [];
     atualizarResumo();
   } catch (erro) {
     console.error("Erro ao carregar:", erro);
@@ -456,16 +255,16 @@ function iniciarTempoReal() {
     .subscribe();
 }
 
-// ✅ INICIA SOMENTE DEPOIS QUE TUDO CARREGOU
+// ====================== INICIALIZAÇÃO ======================
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("✅ Sistema pronto!");
+  console.log("✅ Sistema carregado — botões prontos!");
   carregarTransacoes();
   iniciarTempoReal();
 });
 
-window.onclick = function(event) {
-  const modal = document.getElementById('modalRelatorio');
-  if (event.target === modal) modal.style.display = 'none';
+window.onclick = e => {
+  const m = document.getElementById('modalRelatorio');
+  if (e.target === m) m.style.display = 'none';
 };
 </script>
 
