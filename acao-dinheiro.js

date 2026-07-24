@@ -1,0 +1,41 @@
+// Variáveis compartilhadas com o painel
+let totalDinheiroFisico = 0;
+
+// Função chamada ao clicar no botão
+function registrarDinheiroFisico() {
+  const input = document.getElementById('valor-dinheiro');
+  const valor = parseFloat(input.value);
+  const aviso = document.getElementById('aviso-dinheiro');
+
+  // Validação
+  if (!valor || valor <= 0) {
+    aviso.className = 'aviso-dinheiro erro';
+    aviso.style.display = 'block';
+    aviso.textContent = '❌ Digite um valor válido';
+    return;
+  }
+
+  // Adiciona valor
+  totalDinheiroFisico += valor;
+
+  // Feedback visual
+  aviso.className = 'aviso-dinheiro';
+  aviso.style.display = 'block';
+  aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
+  input.value = '';
+  setTimeout(() => aviso.style.display = 'none', 3000);
+
+  // Atualiza TODOS os números do painel na hora
+  atualizarPainel();
+}
+
+// Atualiza interface
+function atualizarPainel() {
+  const f = n => `R$ ${n.toFixed(2).replace('.', ',')}`;
+  document.getElementById('res-dinheiro').textContent = f(totalDinheiroFisico);
+  document.getElementById('res-pix-conf').textContent = f(totalPix || 0);
+  document.getElementById('res-credito').textContent = f(totalCredito || 0);
+  document.getElementById('res-debito').textContent = f(totalDebito || 0);
+  const totalGeral = (totalPix||0)+(totalCredito||0)+(totalDebito||0)+totalDinheiroFisico;
+  document.getElementById('total-geral-conf').textContent = f(totalGeral);
+}
