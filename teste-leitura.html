@@ -1,10 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Leitura</title>
+</head>
+<body>
+
 <button onclick="testarLeitura()">Clique para Testar Leitura</button>
 <div id="resultado"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT"; // ← sua chave pública
+const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -22,3 +30,6 @@ async function testarLeitura(){
   }
 }
 </script>
+
+</body>
+</html>
