@@ -22,6 +22,7 @@
     .btn-copiar { background:#2563eb; color:white; border:none; padding:10px 14px; border-radius:6px; cursor:pointer; font-weight:bold; }
     .btn-copiar:hover { background:#1d4ed8; }
     .dica { font-size:0.85rem; color:#64748b; margin-top:8px; }
+    .aviso-alternativa { background:#fffbeb; border-left:4px solid #f59e0b; padding:12px; border-radius:6px; margin:10px 0; font-size:0.9rem; color:#92400e; }
     .instrucoes { margin-top:15px; padding-top:15px; border-top:1px solid #f1f5f9; }
     .instrucoes h4 { margin-bottom:10px; color:#1e293b; }
     .passos { padding-left:20px; margin:0; }
@@ -68,6 +69,7 @@
       <option value="citibank">Citibank</option>
       <option value="jpmorgan">J.P. Morgan</option>
       <option value="sofisa">Banco Sofisa</option>
+      <option value="openpix">🔹 OpenPix (Alternativa para Pix)</option>
     </optgroup>
     <optgroup label="💳 CARTEIRAS DIGITAIS">
       <option value="mercadopago">Mercado Pago</option>
@@ -75,9 +77,7 @@
       <option value="pagbank">PagBank</option>
     </optgroup>
     <optgroup label="💳 MAQUININAS / ADQUIRENTES">
-      <option value="pagbank">PagBank</option>
       <option value="ton">Ton</option>
-      <option value="mercadopago">Mercado Pago</option>
       <option value="stone">Stone</option>
       <option value="infinitepay">InfinitePay</option>
       <option value="sumup">SumUp</option>
@@ -107,6 +107,10 @@
       <option value="outro">Outro sistema com Webhook</option>
     </optgroup>
   </select>
+</div>
+
+<div id="aviso-openpix" class="aviso-alternativa oculto">
+  💡 <strong>Dica:</strong> Use o OpenPix quando seu banco não liberar notificações para Pessoa Física — ele funciona como intermediário e avisa o sistema automaticamente.
 </div>
 
 <div id="area-link" class="bloco oculto">
@@ -153,6 +157,7 @@ const guias = {
   citibank: `<li>Portal Empresas → Pix → Integrações/Webhooks</li>`,
   jpmorgan: `<li>Portal → Pix → Integrações → Notificações</li>`,
   sofisa: `<li>Pix → Integrações → Webhooks</li>`,
+  openpix: `<li>Crie sua conta gratuita no OpenPix</li><li>Conecte sua chave Pix</li><li>Vá em Integrações → Webhooks → Adicionar Novo</li><li>Cole o link gerado → Ative eventos: pix.received, pix.updated</li><li>Salve</li>`,
   mercadopago: `<li>Conta → Ferramentas → Webhooks</li><li>Crie novo → Cole o link</li><li>Eventos: pagamento.created, payment.updated</li>`,
   picpay: `<li>Loja/Conta → Integrações → Notificações</li>`,
   pagbank: `<li>Configurações → Integrações → Webhooks</li>`,
@@ -186,7 +191,12 @@ const guias = {
 
 function executarGerarLink() {
   const sistema = document.getElementById('sistema').value;
-  if (!sistema) return;
+  if (!sistema) {
+    document.getElementById('area-link').classList.add('oculto');
+    document.getElementById('area-instrucoes').classList.add('oculto');
+    document.getElementById('aviso-openpix').classList.add('oculto');
+    return;
+  }
 
   const link = `${SUPABASE_URL}/functions/v1/receber-pagamentos?cliente=${CLIENTE_ID}&origem=${sistema}`;
   document.getElementById('link-exclusivo').textContent = link;
@@ -194,11 +204,18 @@ function executarGerarLink() {
   document.getElementById('area-link').classList.remove('oculto');
   document.getElementById('passos-sistema').innerHTML = guias[sistema] || guias.outro;
   document.getElementById('area-instrucoes').classList.remove('oculto');
+
+  // Mostra aviso apenas se escolher OpenPix
+  if (sistema === 'openpix') {
+    document.getElementById('aviso-openpix').classList.remove('oculto');
+  } else {
+    document.getElementById('aviso-openpix').classList.add('oculto');
+  }
 }
 
 function copiarLink() {
   navigator.clipboard.writeText(document.getElementById('link-exclusivo').textContent)
-    .then(() => alert('✅ Link copiado!'));
+    .then(() => alert('✅ Link copiado! Agora cole no seu sistema.'));
 }
 </script>
 
