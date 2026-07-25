@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -104,8 +104,9 @@
     </div>
 
     <script>
+        // ✅ DADOS CORRETOS DO SEU PROJETO
         const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         function mostrarFormulario(tipo) {
@@ -168,7 +169,6 @@
             const senha = document.getElementById('cad-senha').value;
             const conf = document.getElementById('cad-conf-senha').value;
 
-            // Monta endereço completo
             document.getElementById('cad-endereco').value = `${rua}, ${numero} - ${bairro} - ${cidade}/${estado}`;
 
             if (![11,14].includes(doc.length)) return mostrarAviso('avisoCad','❌ CPF 11 ou CNPJ 14 números','erro');
