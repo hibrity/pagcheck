@@ -108,7 +108,7 @@
   <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
 </div>
 
-<!-- BOTÃO E FUNÇÕES LOCAIS -->
+<!-- FUNÇÕES LOCAIS -->
 <script>
 let totalDinheiroFisico = 0;
 let totalPix = 0, totalCredito = 0, totalDebito = 0;
@@ -145,54 +145,60 @@ function atualizarPainel() {
 }
 </script>
 
-<!-- SUPABASE CORRIGIDO - PEGA ID DO USUÁRIO LOGADO -->
+<!-- SUPABASE 100% CORRIGIDO -->
 <script>
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
+
 let supabase;
 let usuarioLogado = null;
-let CLIENTE_ID = null; // ✅ AGORA A VARIÁVEL EXISTE
+let CLIENTE_ID = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    // 🔑 PEGA O USUÁRIO LOGADO AUTOMATICAMENTE
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      console.log("⚠️ Nenhum usuário logado no momento.");
+      alert("⚠️ Faça login primeiro!");
+      console.log("Sem usuário logado");
       return;
     }
 
     usuarioLogado = user;
-    CLIENTE_ID = user.id; // 🆔 AGORA TEM O ID REAL
-    console.log("✅ Usuário logado:", CLIENTE_ID);
+    CLIENTE_ID = user.id;
+    console.log("✅ Meu ID logado:", CLIENTE_ID);
 
-    carregarDados();
+    await carregarDados();
     tempoReal();
   } catch (e) {
-    console.error("Erro na conexão:", e);
+    console.error("❌ Erro:", e);
   }
 });
 
 async function carregarDados() {
   if (!supabase || !CLIENTE_ID) return;
+
   const { data, error } = await supabase
     .from('transacoes_gerais')
     .select('tipo, valor, status')
     .eq('cliente_id', CLIENTE_ID);
 
   if (error) {
-    console.error("Erro ao carregar:", error);
+    console.error("Erro busca:", error);
     return;
   }
 
+  console.log("📦 Dados do banco:", data);
+
   totalPix = totalCredito = totalDebito = 0;
   data.forEach(t => {
-    if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += Number(t.valor);
-    if (t.tipo === 'CREDITO') totalCredito += Number(t.valor);
-    if (t.tipo === 'DEBITO') totalDebito += Number(t.valor);
+    const valor = parseFloat(t.valor) || 0;
+    if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += valor;
+    if (t.tipo === 'CREDITO') totalCredito += valor;
+    if (t.tipo === 'DEBITO') totalDebito += valor;
   });
+
   atualizarPainel();
 }
 
