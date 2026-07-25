@@ -4,51 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PagCheck - Painel Principal</title>
-  <script>
-    // ================= VALORES LOCAIS (SEM SUPABASE) =================
-    let totalDinheiroFisico = 0;
-
-    // ================= FUNÇÃO DE ADICIONAR (INDEPENDENTE) =================
-    function registrarDinheiroFisico() {
-      const input = document.getElementById('valor-dinheiro');
-      const valor = parseFloat(input.value);
-      const aviso = document.getElementById('aviso-dinheiro');
-
-      if (!valor || valor <= 0) {
-        aviso.className = 'aviso-dinheiro erro';
-        aviso.style.display = 'block';
-        aviso.textContent = '❌ Digite um valor válido';
-        return;
-      }
-
-      // Adiciona ao total local
-      totalDinheiroFisico += valor;
-
-      // Mostra mensagem
-      aviso.className = 'aviso-dinheiro';
-      aviso.style.display = 'block';
-      aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
-      input.value = '';
-      setTimeout(() => aviso.style.display = 'none', 3000);
-
-      // Atualiza o painel NA HORA
-      atualizarPainel();
-    }
-
-    // ================= ATUALIZA PAINEL =================
-    function atualizarPainel() {
-      const f = n => `R$ ${n.toFixed(2).replace('.', ',')}`;
-      document.getElementById('res-dinheiro').textContent = f(totalDinheiroFisico);
-      
-      // Pega os outros valores que você já tem na tela e soma no total geral
-      const pixC = parseFloat(document.getElementById('res-pix-conf').textContent.replace('R$ ','').replace(',','.')) || 0;
-      const cred = parseFloat(document.getElementById('res-credito').textContent.replace('R$ ','').replace(',','.')) || 0;
-      const deb = parseFloat(document.getElementById('res-debito').textContent.replace('R$ ','').replace(',','.')) || 0;
-      
-      const totalGeral = pixC + cred + deb + totalDinheiroFisico;
-      document.getElementById('total-geral-conf').textContent = f(totalGeral);
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     body { background: #f5f7fa; padding: 16px; max-width: 1350px; margin: 0 auto; min-height: 100vh; }
@@ -71,7 +27,7 @@
     .btn-relatorio { padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
     .resumo-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .resumo-linha { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
-    .resumo-valor-conf { font-weight: bold; color: #16a34a; }
+    .resumo-valor-conf { font-weight: bold; color: #166534; }
     .resumo-valor-agen { font-weight: bold; color: #f59e0b; }
     .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow-y: auto; }
     .modal-conteudo { background: white; margin: 5% auto; padding: 24px; border-radius: 10px; width: 95%; max-width: 750px; }
@@ -139,7 +95,7 @@
       <span class="fechar" onclick="document.getElementById('modalRelatorio').style.display='none'">&times;</span>
     </div>
     <div style="padding:20px;text-align:center;color:#666;">
-      Relatório funcionando — dinheiro físico é somado localmente
+      Relatório funcionando — valores automáticos + dinheiro físico
     </div>
     <button class="btn-baixar" onclick="alert('Baixar relatório aqui quando quiser!')">💾 Baixar CSV</button>
   </div>
@@ -151,6 +107,102 @@
   <div class="card card-debito"><div class="card-titulo">💳 Débito</div><div>Aguardando...</div></div>
   <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
 </div>
+
+<!-- BOTÃO E FUNÇÕES LOCAIS -->
+<script>
+let totalDinheiroFisico = 0;
+let totalPix = 0, totalCredito = 0, totalDebito = 0;
+
+function registrarDinheiroFisico() {
+  const input = document.getElementById('valor-dinheiro');
+  const valor = parseFloat(input.value);
+  const aviso = document.getElementById('aviso-dinheiro');
+
+  if (!valor || valor <= 0) {
+    aviso.className = 'aviso-dinheiro erro';
+    aviso.style.display = 'block';
+    aviso.textContent = '❌ Digite um valor válido';
+    return;
+  }
+
+  totalDinheiroFisico += valor;
+  aviso.className = 'aviso-dinheiro';
+  aviso.style.display = 'block';
+  aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
+  input.value = '';
+  setTimeout(() => aviso.style.display = 'none', 3000);
+
+  atualizarPainel();
+}
+
+function atualizarPainel() {
+  const f = n => `R$ ${n.toFixed(2).replace('.', ',')}`;
+  document.getElementById('res-dinheiro').textContent = f(totalDinheiroFisico);
+  document.getElementById('res-pix-conf').textContent = f(totalPix);
+  document.getElementById('res-credito').textContent = f(totalCredito);
+  document.getElementById('res-debito').textContent = f(totalDebito);
+  document.getElementById('total-geral-conf').textContent = f(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
+}
+</script>
+
+<!-- SUPABASE CORRIGIDO - PEGA ID DO USUÁRIO LOGADO -->
+<script>
+const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_qDseeu571ny1vWGXhUNoXQ_hGnTQhGT";
+let supabase;
+let usuarioLogado = null;
+let CLIENTE_ID = null; // ✅ AGORA A VARIÁVEL EXISTE
+
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // 🔑 PEGA O USUÁRIO LOGADO AUTOMATICAMENTE
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log("⚠️ Nenhum usuário logado no momento.");
+      return;
+    }
+
+    usuarioLogado = user;
+    CLIENTE_ID = user.id; // 🆔 AGORA TEM O ID REAL
+    console.log("✅ Usuário logado:", CLIENTE_ID);
+
+    carregarDados();
+    tempoReal();
+  } catch (e) {
+    console.error("Erro na conexão:", e);
+  }
+});
+
+async function carregarDados() {
+  if (!supabase || !CLIENTE_ID) return;
+  const { data, error } = await supabase
+    .from('transacoes_gerais')
+    .select('tipo, valor, status')
+    .eq('cliente_id', CLIENTE_ID);
+
+  if (error) {
+    console.error("Erro ao carregar:", error);
+    return;
+  }
+
+  totalPix = totalCredito = totalDebito = 0;
+  data.forEach(t => {
+    if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += Number(t.valor);
+    if (t.tipo === 'CREDITO') totalCredito += Number(t.valor);
+    if (t.tipo === 'DEBITO') totalDebito += Number(t.valor);
+  });
+  atualizarPainel();
+}
+
+function tempoReal() {
+  if (!CLIENTE_ID) return;
+  supabase.channel('pagamentos')
+    .on('postgres_changes', { event: '*', table: 'transacoes_gerais', filter: `cliente_id=eq.${CLIENTE_ID}` }, carregarDados)
+    .subscribe();
+}
+</script>
 
 </body>
 </html>
