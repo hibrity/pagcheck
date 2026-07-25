@@ -14,6 +14,10 @@
     .logo-texto { font-size: 2rem; font-weight: 800; color: #1e293b; }
     .logo-texto span { color: #2563eb; }
     .slogan { width: 100%; color: #64748b; font-size: 1rem; margin-top: 8px; }
+    .usuario-logado { width: 100%; background: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .usuario-dados { text-align: left; }
+    .usuario-nome { font-weight: bold; color: #1e293b; font-size: 1rem; }
+    .usuario-email { color: #64748b; font-size: 0.9rem; }
     .btn-config { background: #7c3aed; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
     .aviso-seguranca { background: #fffbeb; color: #92400e; padding: 12px; border-radius: 6px; border-left: 3px solid #f59e0b; max-width: 600px; margin: 0 auto 20px; text-align: center; }
     .dinheiro-fisico { background: #fffbeb; border-radius: 8px; padding: 16px; max-width: 600px; margin: 0 auto 20px; }
@@ -61,6 +65,15 @@
   </div>
   <button class="btn-config" onclick="window.location.href='configuracoes.html'">⚙️ Configurar</button>
   <p class="slogan">Confirmação direto do banco — sem golpes</p>
+</div>
+
+<!-- ✅ ÁREA COM NOME E E-MAIL DO USUÁRIO LOGADO -->
+<div class="usuario-logado">
+  <div class="usuario-dados">
+    <div class="usuario-nome" id="mostra-nome">Carregando...</div>
+    <div class="usuario-email" id="mostra-email">Carregando...</div>
+  </div>
+  <button class="btn-config" onclick="sairConta()">🚪 Sair</button>
 </div>
 
 <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE após confirmar o recebimento</div>
@@ -143,9 +156,15 @@ function atualizarPainel() {
   document.getElementById('res-debito').textContent = f(totalDebito);
   document.getElementById('total-geral-conf').textContent = f(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
 }
+
+// ✅ FUNÇÃO PARA SAIR DA CONTA
+async function sairConta() {
+  await supabase.auth.signOut();
+  location.href = 'index.html';
+}
 </script>
 
-<!-- SUPABASE 100% CORRIGIDO -->
+<!-- SUPABASE ATUALIZADO COM DADOS DO USUÁRIO -->
 <script>
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
@@ -161,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       alert("⚠️ Faça login primeiro!");
-      console.log("Sem usuário logado");
+      window.location.href = 'index.html';
       return;
     }
 
@@ -169,10 +188,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     CLIENTE_ID = user.id;
     console.log("✅ Meu ID logado:", CLIENTE_ID);
 
+    // ✅ BUSCA O NOME NA TABELA DE ESTABELECIMENTOS E MOSTRA NA TELA
+    const { data: perfil } = await supabase
+      .from('estabelecimentos')
+      .select('nome, email')
+      .eq('usuario_id', CLIENTE_ID)
+      .single();
+
+    document.getElementById('mostra-nome').textContent = perfil?.nome || 'Usuário';
+    document.getElementById('mostra-email').textContent = user.email;
+
     await carregarDados();
     tempoReal();
   } catch (e) {
     console.error("❌ Erro:", e);
+    document.getElementById('mostra-nome').textContent = 'Usuário';
+    document.getElementById('mostra-email').textContent = usuarioLogado?.email || '';
   }
 });
 
