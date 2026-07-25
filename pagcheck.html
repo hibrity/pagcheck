@@ -67,11 +67,11 @@
   <p class="slogan">Confirmação direto do banco — sem golpes</p>
 </div>
 
-<!-- ✅ ÁREA COM NOME E E-MAIL DO USUÁRIO LOGADO -->
+<!-- ÁREA COM NOME E E-MAIL DO SUPABASE -->
 <div class="usuario-logado">
   <div class="usuario-dados">
-    <div class="usuario-nome" id="mostra-nome">Carregando...</div>
-    <div class="usuario-email" id="mostra-email">Carregando...</div>
+    <div class="usuario-nome" id="mostra-nome">Buscando dados...</div>
+    <div class="usuario-email" id="mostra-email">Buscando...</div>
   </div>
   <button class="btn-config" onclick="sairConta()">🚪 Sair</button>
 </div>
@@ -121,7 +121,6 @@
   <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
 </div>
 
-<!-- FUNÇÕES LOCAIS -->
 <script>
 let totalDinheiroFisico = 0;
 let totalPix = 0, totalCredito = 0, totalDebito = 0;
@@ -130,21 +129,18 @@ function registrarDinheiroFisico() {
   const input = document.getElementById('valor-dinheiro');
   const valor = parseFloat(input.value);
   const aviso = document.getElementById('aviso-dinheiro');
-
   if (!valor || valor <= 0) {
     aviso.className = 'aviso-dinheiro erro';
     aviso.style.display = 'block';
     aviso.textContent = '❌ Digite um valor válido';
     return;
   }
-
   totalDinheiroFisico += valor;
   aviso.className = 'aviso-dinheiro';
   aviso.style.display = 'block';
   aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
   input.value = '';
   setTimeout(() => aviso.style.display = 'none', 3000);
-
   atualizarPainel();
 }
 
@@ -157,14 +153,12 @@ function atualizarPainel() {
   document.getElementById('total-geral-conf').textContent = f(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
 }
 
-// ✅ FUNÇÃO PARA SAIR DA CONTA
 async function sairConta() {
   await supabase.auth.signOut();
   location.href = 'index.html';
 }
 </script>
 
-<!-- SUPABASE ATUALIZADO COM DADOS DO USUÁRIO -->
 <script>
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
@@ -186,42 +180,45 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     usuarioLogado = user;
     CLIENTE_ID = user.id;
-    console.log("✅ Meu ID logado:", CLIENTE_ID);
 
-    // ✅ BUSCA O NOME NA TABELA DE ESTABELECIMENTOS E MOSTRA NA TELA
-    const { data: perfil } = await supabase
-      .from('estabelecimentos')
-      .select('nome, email')
-      .eq('usuario_id', CLIENTE_ID)
-      .single();
-
-    document.getElementById('mostra-nome').textContent = perfil?.nome || 'Usuário';
+    // ✅ EMAIL VEM DIRETO DA AUTENTICAÇÃO DO SUPABASE
     document.getElementById('mostra-email').textContent = user.email;
 
+    // ✅ NOME VEM EXCLUSIVAMENTE DA TABELA estabelecimentos
+    const { data: perfil, error } = await supabase
+      .from('estabelecimentos')
+      .select('nome')
+      .eq('usuario_id', CLIENTE_ID)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Erro ao buscar perfil:", error);
+      document.getElementById('mostra-nome').textContent = "Perfil não encontrado";
+    } else if (perfil) {
+      document.getElementById('mostra-nome').textContent = perfil.nome;
+    } else {
+      document.getElementById('mostra-nome').textContent = "Cadastro incompleto";
+    }
+
+    console.log("✅ Usuário logado - ID:", CLIENTE_ID);
     await carregarDados();
     tempoReal();
   } catch (e) {
-    console.error("❌ Erro:", e);
-    document.getElementById('mostra-nome').textContent = 'Usuário';
-    document.getElementById('mostra-email').textContent = usuarioLogado?.email || '';
+    console.error("❌ Erro geral:", e);
+    window.location.href = 'index.html';
   }
 });
 
 async function carregarDados() {
   if (!supabase || !CLIENTE_ID) return;
-
   const { data, error } = await supabase
     .from('transacoes_gerais')
     .select('tipo, valor, status')
     .eq('cliente_id', CLIENTE_ID);
-
   if (error) {
     console.error("Erro busca:", error);
     return;
   }
-
-  console.log("📦 Dados do banco:", data);
-
   totalPix = totalCredito = totalDebito = 0;
   data.forEach(t => {
     const valor = parseFloat(t.valor) || 0;
@@ -229,7 +226,6 @@ async function carregarDados() {
     if (t.tipo === 'CREDITO') totalCredito += valor;
     if (t.tipo === 'DEBITO') totalDebito += valor;
   });
-
   atualizarPainel();
 }
 
