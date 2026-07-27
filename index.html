@@ -1,4 +1,4 @@
-<!DOCTYPE html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -104,7 +104,7 @@
     </div>
 
     <script>
-        // ✅ DADOS CORRETOS DO SEU PROJETO
+        // DADOS DO SEU PROJETO
         const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -154,7 +154,7 @@
             }
         });
 
-        // CADASTRO
+        // CADASTRO CORRIGIDO — SEM A LINHA "EMPRESA"
         document.getElementById('form-cadastro').addEventListener('submit', async e => {
             e.preventDefault(); limparAvisos();
 
@@ -186,10 +186,10 @@
                     refresh_token: authRes.data.session.refresh_token
                 });
 
+                // ✅ REMOVIDO O CAMPO "EMPRESA" — AGORA BATE COM A TABELA
                 const perfilRes = await _supabase.from('estabelecimentos').insert({
                     usuario_id: authRes.data.user.id,
                     nome: nome,
-                    empresa: nome,
                     cpf_cnpj: doc,
                     endereco: document.getElementById('cad-endereco').value,
                     email: email
