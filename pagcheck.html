@@ -67,7 +67,6 @@
   <p class="slogan">Confirmação direto do banco — sem golpes</p>
 </div>
 
-<!-- ÁREA COM NOME E E-MAIL DO SUPABASE -->
 <div class="usuario-logado">
   <div class="usuario-dados">
     <div class="usuario-nome" id="mostra-nome">Buscando dados...</div>
@@ -122,8 +121,15 @@
 </div>
 
 <script>
+// ✅ DECLARADAS NO TOPO — NÃO DÁ MAIS ERRO DE "NÃO DEFINIDA"
 let totalDinheiroFisico = 0;
 let totalPix = 0, totalCredito = 0, totalDebito = 0;
+let supabase;
+let usuarioLogado = null;
+let CLIENTE_ID = null;
+
+const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
 
 function registrarDinheiroFisico() {
   const input = document.getElementById('valor-dinheiro');
@@ -148,6 +154,7 @@ function atualizarPainel() {
   const f = n => `R$ ${n.toFixed(2).replace('.', ',')}`;
   document.getElementById('res-dinheiro').textContent = f(totalDinheiroFisico);
   document.getElementById('res-pix-conf').textContent = f(totalPix);
+  document.getElementById('res-pix-agen').textContent = 'R$ 0,00';
   document.getElementById('res-credito').textContent = f(totalCredito);
   document.getElementById('res-debito').textContent = f(totalDebito);
   document.getElementById('total-geral-conf').textContent = f(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
@@ -157,15 +164,6 @@ async function sairConta() {
   await supabase.auth.signOut();
   location.href = 'index.html';
 }
-</script>
-
-<script>
-const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
-
-let supabase;
-let usuarioLogado = null;
-let CLIENTE_ID = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
@@ -181,10 +179,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     usuarioLogado = user;
     CLIENTE_ID = user.id;
 
-    // ✅ EMAIL VEM DIRETO DA AUTENTICAÇÃO DO SUPABASE
     document.getElementById('mostra-email').textContent = user.email;
 
-    // ✅ NOME VEM EXCLUSIVAMENTE DA TABELA estabelecimentos
     const { data: perfil, error } = await supabase
       .from('estabelecimentos')
       .select('nome')
