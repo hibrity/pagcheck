@@ -121,10 +121,18 @@
   <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
 </div>
 
-<script>
+ </script>// 🔴 PRIMEIRO: DADOS E CONEXÃO — ANTES DE TUDO
+const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
+
+// ✅ CRIA O CLIENTE AQUI — DISPONÍVEL PARA TODAS AS FUNÇÕES
+let supabase;
+let usuarioLogado = null;
+let CLIENTE_ID = null;
 let totalDinheiroFisico = 0;
 let totalPix = 0, totalCredito = 0, totalDebito = 0;
 
+// 🟡 DEPOIS: AS FUNÇÕES
 function registrarDinheiroFisico() {
   const input = document.getElementById('valor-dinheiro');
   const valor = parseFloat(input.value);
@@ -148,66 +156,27 @@ function atualizarPainel() {
   const f = n => `R$ ${n.toFixed(2).replace('.', ',')}`;
   document.getElementById('res-dinheiro').textContent = f(totalDinheiroFisico);
   document.getElementById('res-pix-conf').textContent = f(totalPix);
+  document.getElementById('res-pix-agen').textContent = 'R$ 0,00';
   document.getElementById('res-credito').textContent = f(totalCredito);
   document.getElementById('res-debito').textContent = f(totalDebito);
   document.getElementById('total-geral-conf').textContent = f(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
 }
 
+// ✅ FUNÇÃO SAIR — AGORA ENCONTRA O SUPABASE
 async function sairConta() {
-  await supabase.auth.signOut();
-  location.href = 'index.html';
-}
-</script>
-
-<script>
-const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
-
-let supabase;
-let usuarioLogado = null;
-let CLIENTE_ID = null;
-
-document.addEventListener('DOMContentLoaded', async () => {
   try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert("⚠️ Faça login primeiro!");
-      window.location.href = 'index.html';
+    if (!supabase) {
+      console.warn("Supabase não inicializado — indo para login");
+      window.location.href = "index.html";
       return;
     }
-
-    usuarioLogado = user;
-    CLIENTE_ID = user.id;
-
-    // ✅ EMAIL VEM DIRETO DA AUTENTICAÇÃO DO SUPABASE
-    document.getElementById('mostra-email').textContent = user.email;
-
-    // ✅ NOME VEM EXCLUSIVAMENTE DA TABELA estabelecimentos
-    const { data: perfil, error } = await supabase
-      .from('estabelecimentos')
-      .select('nome')
-      .eq('usuario_id', CLIENTE_ID)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Erro ao buscar perfil:", error);
-      document.getElementById('mostra-nome').textContent = "Perfil não encontrado";
-    } else if (perfil) {
-      document.getElementById('mostra-nome').textContent = perfil.nome;
-    } else {
-      document.getElementById('mostra-nome').textContent = "Cadastro incompleto";
-    }
-
-    console.log("✅ Usuário logado - ID:", CLIENTE_ID);
-    await carregarDados();
-    tempoReal();
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
   } catch (e) {
-    console.error("❌ Erro geral:", e);
-    window.location.href = 'index.html';
+    console.error("Erro ao sair:", e);
+    window.location.href = "index.html";
   }
-});
+}
 
 async function carregarDados() {
   if (!supabase || !CLIENTE_ID) return;
@@ -216,7 +185,7 @@ async function carregarDados() {
     .select('tipo, valor, status')
     .eq('cliente_id', CLIENTE_ID);
   if (error) {
-    console.error("Erro busca:", error);
+    console.error("Erro busca transações:", error);
     return;
   }
   totalPix = totalCredito = totalDebito = 0;
@@ -235,7 +204,48 @@ function tempoReal() {
     .on('postgres_changes', { event: '*', table: 'transacoes_gerais', filter: `cliente_id=eq.${CLIENTE_ID}` }, carregarDados)
     .subscribe();
 }
-</script>
 
+// 🟢 POR ÚLTIMO: INICIALIZAÇÃO — SÓ DEPOIS DE TUDO CRIADO
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // ✅ CRIA O CLIENTE AQUI E JÁ GUARDA NA VARIÁVEL GLOBAL
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log("✅ Cliente Supabase criado");
+
+    const { data: { user }, error: erroAuth } = await supabase.auth.getUser();
+    if (erroAuth || !user) {
+      alert("⚠️ Faça login primeiro!");
+      window.location.href = "index.html";
+      return;
+    }
+
+    usuarioLogado = user;
+    CLIENTE_ID = user.id;
+    document.getElementById('mostra-email').textContent = user.email;
+
+    const { data: perfil, error: erroPerfil } = await supabase
+      .from('estabelecimentos')
+      .select('nome')
+      .eq('usuario_id', CLIENTE_ID)
+      .maybeSingle();
+
+    if (erroPerfil) {
+      console.error("Erro buscar perfil:", erroPerfil);
+      document.getElementById('mostra-nome').textContent = "Perfil não encontrado";
+    } else if (perfil) {
+      document.getElementById('mostra-nome').textContent = perfil.nome;
+    } else {
+      document.getElementById('mostra-nome').textContent = "Cadastro incompleto";
+    }
+
+    console.log("✅ Usuário logado:", CLIENTE_ID);
+    await carregarDados();
+    tempoReal();
+  } catch (e) {
+    console.error("❌ ERRO GERAL NA CONEXÃO:", e);
+    alert("Falha ao conectar — voltando ao login");
+    window.location.href = "index.html";
+  }
+}); <scritp//>
 </body>
 </html>
