@@ -121,6 +121,7 @@
 </div>
 
 <script>
+// ✅ DECLARADAS NO TOPO — NÃO DÁ MAIS ERRO DE "NÃO DEFINIDA"
 let totalDinheiroFisico = 0;
 let totalPix = 0, totalCredito = 0, totalDebito = 0;
 let supabase;
@@ -195,6 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('mostra-nome').textContent = "Cadastro incompleto";
     }
 
+    console.log("✅ Usuário logado - ID:", CLIENTE_ID);
     await carregarDados();
     tempoReal();
   } catch (e) {
