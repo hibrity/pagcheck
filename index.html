@@ -3,32 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PagCheck - Acesso Seguro</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>PagCheck - Acesso e Painel</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #f4f7f6; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1350px; margin: 0 auto; }
+        .tela-acesso { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .painel-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
         .logo-area { text-align: center; margin-bottom: 30px; }
         .logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
         .logo-icone { width: 45px; height: 45px; }
         .logo-texto { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 0; }
         .logo-texto span { color: #2563eb; }
         .slogan { color: #64748b; font-size: 0.9rem; margin: 0; }
-
-        .tela-inicial { display: flex; flex-direction: column; gap: 15px; }
-        .btn-inicial { background: #2563eb; color: white; padding: 14px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .tela-inicial { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+        .btn-inicial { background: #2563eb; color: white; padding: 10px 24px; border: none; border-radius: 4px; font-size: 15px; font-weight: bold; cursor: pointer; width: auto; min-width: 180px; }
         .btn-inicial:hover { background: #1d4ed8; }
         .btn-secundario { background: #e2e8f0; color: #1e293b; }
         .btn-secundario:hover { background: #cbd5e1; }
-
         .area-formularios { display: none; }
         .voltar { text-align: left; margin-bottom: 15px; }
-        .btn-voltar { background: none; border: none; color: #2563eb; font-size: 14px; cursor: pointer; padding: 0; }
+        .btn-voltar { background: none; border: none; color: #2563eb; font-size: 14px; cursor: pointer; padding: 0; width: auto; }
         .form-panel { display: none; }
         .form-panel.active { display: block; }
-        input { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; }
         input[readonly] { background: #f9f9f9; color: #555; cursor: not-allowed; }
-        button { width: 100%; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:not(.btn-voltar):not(.btn-inicial):not(.btn-config):not(.btn-relatorio) { 
+            width: auto; 
+            padding: 10px 24px; 
+            display: block; 
+            margin: 8px auto 0 auto; 
+        }
         button:hover { background: #1d4ed8; }
         .links { text-align: center; margin-top: 15px; }
         .links a { color: #2563eb; text-decoration: none; font-size: 14px; }
@@ -37,77 +43,189 @@
         .sucesso { background: #e2f9e2; color: #006400; border: 1px solid #bbf7d0; }
         .linha-dupla { display: flex; gap: 10px; }
         .linha-dupla input { flex: 1; }
+        .tela-painel { display: none; }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; text-align: center; }
+        .btn-config { background: #7c3aed; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; width: auto; }
+        .usuario-logado { background: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .usuario-dados { text-align: left; }
+        .usuario-nome { font-weight: bold; color: #1e293b; font-size: 1rem; }
+        .usuario-email { color: #64748b; font-size: 0.9rem; }
+        .aviso-seguranca { background: #fffbeb; color: #92400e; padding: 12px; border-radius: 6px; border-left: 3px solid #f59e0b; max-width: 600px; margin: 0 auto 20px; text-align: center; }
+        .dinheiro-fisico { background: #fffbeb; border-radius: 8px; padding: 16px; max-width: 600px; margin: 0 auto 20px; }
+        .grupo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+        .dinheiro-fisico input { flex: 1; min-width: 220px; padding: 10px; border: 1px solid #f59e0b; border-radius: 6px; font-size: 1rem; }
+        .dinheiro-fisico button { padding: 10px 18px; background: #f59e0b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; width: auto; }
+        .aviso-dinheiro { margin-top: 10px; display: none; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; background: #dcfce7; color: #166534; }
+        .aviso-dinheiro.erro { background: #fee2e2; color: #dc2626; }
+        .resumo { background: white; border-radius: 8px; padding: 20px; margin-bottom: 24px; max-width: 850px; margin: 0 auto; }
+        .resumo-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .btn-relatorio { padding: 7px 14px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; width: auto; }
+        .resumo-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        .resumo-linha { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
+        .resumo-valor-conf { font-weight: bold; color: #166534; }
+        .resumo-valor-agen { font-weight: bold; color: #f59e0b; }
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow-y: auto; }
+        .modal-conteudo { background: white; margin: 5% auto; padding: 24px; border-radius: 10px; width: 95%; max-width: 750px; }
+        .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+        .fechar { font-size: 28px; font-weight: bold; cursor: pointer; color: #9ca3af; }
+        .cards { display: grid; gap: 18px; grid-template-columns: repeat(4, 1fr); margin-top: 20px; }
+        @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
+        .card { border-radius: 10px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card-pix { background: #eff6ff; border-left: 4px solid #2563eb; }
+        .card-credito { background: #faf5ff; border-left: 4px solid #7c3aed; }
+        .card-debito { background: #f0fdf4; border-left: 4px solid #16a34a; }
+        .card-notas { background: #fffbeb; border-left: 4px solid #f59e0b; }
+        .card-titulo { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
+        .aviso-futuro { margin-top: 10px; font-size: 0.85rem; color: #64748b; text-align: center; }
+        .erro-tela { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo-area">
-            <div class="logo">
-                <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
-                    <circle cx="50" cy="50" r="42" fill="#2563eb" stroke="#93c5fd" stroke-width="4"/>
-                    <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <h1 class="logo-texto">Pag<span>Check</span></h1>
+        <!-- TELA DE ACESSO (Login/Cadastro) -->
+        <div id="tela-acesso" class="tela-acesso">
+            <div class="painel-card">
+                <div class="logo-area">
+                    <div class="logo">
+                        <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
+                            <circle cx="50" cy="50" r="42" fill="#2563eb" stroke="#93c5fd" stroke-width="4"/>
+                            <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <h1 class="logo-texto">Pag<span>Check</span></h1>
+                    </div>
+                    <p class="slogan">Confirmação segura de pagamentos</p>
+                </div>
+
+                <div id="tela-inicial" class="tela-inicial">
+                    <button class="btn-inicial" onclick="mostrarFormulario('login')">Entrar</button>
+                    <button class="btn-inicial btn-secundario" onclick="mostrarFormulario('cadastro')">Criar Conta</button>
+                </div>
+
+                <div id="area-formularios" class="area-formularios">
+                    <div class="voltar">
+                        <button class="btn-voltar" onclick="voltarInicio()">← Voltar</button>
+                    </div>
+
+                    <div id="login" class="form-panel">
+                        <form id="form-login">
+                            <input type="email" id="login-email" placeholder="Seu e-mail" required>
+                            <input type="password" id="login-senha" placeholder="Sua senha" required>
+                            <div id="avisoLogin" class="aviso"></div>
+                            <button type="submit">Entrar</button>
+                        </form>
+                        <div class="links">
+                            <a href="#" onclick="recuperarSenha()">Esqueceu a senha?</a>
+                        </div>
+                    </div>
+
+                    <div id="cadastro" class="form-panel">
+                        <form id="form-cadastro">
+                            <input type="text" id="cad-nome" placeholder="Nome Completo / Razão Social" required>
+                            <input type="text" id="cad-documento" placeholder="CPF (11) ou CNPJ (14)" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                            <input type="text" id="cad-cep" placeholder="Digite o CEP (apenas números)" maxlength="8" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                            <input type="text" id="cad-rua" placeholder="Rua" readonly required>
+                            <div class="linha-dupla">
+                                <input type="text" id="cad-numero" placeholder="Número" required>
+                                <input type="text" id="cad-bairro" placeholder="Bairro" readonly required>
+                            </div>
+                            <div class="linha-dupla">
+                                <input type="text" id="cad-cidade" placeholder="Cidade" readonly required>
+                                <input type="text" id="cad-estado" placeholder="UF" maxlength="2" readonly required>
+                            </div>
+                            <input type="hidden" id="cad-endereco">
+                            <input type="email" id="cad-email" placeholder="Seu e-mail" required>
+                            <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6)" required minlength="6">
+                            <input type="password" id="cad-conf-senha" placeholder="Confirmar senha" required minlength="6">
+                            <div id="avisoCad" class="aviso"></div>
+                            <button type="submit">Cadastrar</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <p class="slogan">Confirmação segura de pagamentos</p>
         </div>
 
-        <div id="tela-inicial" class="tela-inicial">
-            <button class="btn-inicial" onclick="mostrarFormulario('login')">Entrar</button>
-            <button class="btn-inicial btn-secundario" onclick="mostrarFormulario('cadastro')">Criar Conta</button>
-        </div>
-
-        <div id="area-formularios" class="area-formularios">
-            <div class="voltar">
-                <button class="btn-voltar" onclick="voltarInicio()">← Voltar</button>
+        <!-- TELA DO PAINEL PRINCIPAL -->
+        <div id="tela-painel" class="tela-painel">
+            <div class="header">
+                <div class="logo">
+                    <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
+                        <circle cx="50" cy="50" r="42" fill="#2563eb" stroke="#93c5fd" stroke-width="4"/>
+                        <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h1 class="logo-texto">Pag<span>Check</span></h1>
+                </div>
+                <button class="btn-config" onclick="alert('Página de configurações em desenvolvimento')">⚙️ Configurar</button>
+                <p class="slogan">Confirmação direto do banco — sem golpes</p>
             </div>
 
-            <div id="login" class="form-panel">
-                <form id="form-login">
-                    <input type="email" id="login-email" placeholder="Seu e-mail" required>
-                    <input type="password" id="login-senha" placeholder="Sua senha" required>
-                    <div id="avisoLogin" class="aviso"></div>
-                    <button type="submit">Entrar</button>
-                </form>
-                <div class="links">
-                    <a href="#" onclick="recuperarSenha()">Esqueceu a senha?</a>
+            <div id="erro-geral" class="erro-tela"></div>
+
+            <div class="usuario-logado">
+                <div class="usuario-dados">
+                    <div class="usuario-nome" id="mostra-nome">Carregando dados...</div>
+                    <div class="usuario-email" id="mostra-email">Carregando e-mail...</div>
+                </div>
+                <button class="btn-config" onclick="sairConta()">🚪 Sair</button>
+            </div>
+
+            <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE após confirmar o recebimento</div>
+
+            <div class="dinheiro-fisico">
+                <div class="grupo">
+                    <input type="number" id="valor-dinheiro" placeholder="Valor em espécie R$" step="0.01">
+                    <button onclick="registrarDinheiroFisico()">Adicionar</button>
+                </div>
+                <div id="aviso-dinheiro" class="aviso-dinheiro"></div>
+            </div>
+
+            <div class="resumo">
+                <div class="resumo-cabecalho">
+                    <h4>📊 Resumo do Dia</h4>
+                    <button class="btn-relatorio" onclick="document.getElementById('modalRelatorio').style.display='block';">📄 Ver Relatório</button>
+                </div>
+                <div class="resumo-grade">
+                    <div class="resumo-linha"><span>Pix Confirmado:</span><span id="res-pix-conf">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Pix Agendado:</span><span id="res-pix-agen">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Crédito:</span><span id="res-credito">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Débito:</span><span id="res-debito">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Dinheiro Físico:</span><span id="res-dinheiro">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Total:</span><span id="total-geral-conf">R$ 0,00</span></div>
                 </div>
             </div>
 
-            <div id="cadastro" class="form-panel">
-                <form id="form-cadastro">
-                    <input type="text" id="cad-nome" placeholder="Nome Completo / Razão Social" required>
-                    <input type="text" id="cad-documento" placeholder="CPF (11) ou CNPJ (14)" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')" required>
-                    
-                    <input type="text" id="cad-cep" placeholder="Digite o CEP (apenas números)" maxlength="8" oninput="this.value=this.value.replace(/\D/g,'')" required>
-                    
-                    <input type="text" id="cad-rua" placeholder="Rua" readonly required>
-                    <div class="linha-dupla">
-                        <input type="text" id="cad-numero" placeholder="Número" required>
-                        <input type="text" id="cad-bairro" placeholder="Bairro" readonly required>
+            <div id="modalRelatorio" class="modal">
+                <div class="modal-conteudo">
+                    <div class="modal-cabecalho">
+                        <h3>📋 Relatório</h3>
+                        <span class="fechar" onclick="document.getElementById('modalRelatorio').style.display='none'">&times;</span>
                     </div>
-                    <div class="linha-dupla">
-                        <input type="text" id="cad-cidade" placeholder="Cidade" readonly required>
-                        <input type="text" id="cad-estado" placeholder="UF" maxlength="2" readonly required>
+                    <div style="padding:20px;text-align:center;color:#666;">
+                        Relatório funcionando — valores automáticos + dinheiro físico
                     </div>
+                    <button class="btn-baixar" onclick="alert('Baixar relatório em breve!')">💾 Baixar CSV</button>
+                </div>
+            </div>
 
-                    <input type="hidden" id="cad-endereco">
-
-                    <input type="email" id="cad-email" placeholder="Seu e-mail" required>
-                    <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6)" required minlength="6">
-                    <input type="password" id="cad-conf-senha" placeholder="Confirmar senha" required minlength="6">
-                    <div id="avisoCad" class="aviso"></div>
-                    <button type="submit">Cadastrar</button>
-                </form>
+            <div class="cards">
+                <div class="card card-pix"><div class="card-titulo">⚡ Pix</div><div>Aguardando dados...</div></div>
+                <div class="card card-credito"><div class="card-titulo">💳 Crédito</div><div>Aguardando dados...</div></div>
+                <div class="card card-debito"><div class="card-titulo">💳 Débito</div><div>Aguardando dados...</div></div>
+                <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
             </div>
         </div>
     </div>
 
     <script>
-        // DADOS DO SEU PROJETO
+        // ==================== CONFIGURAÇÕES DO SEU PROJETO ====================
         const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let usuarioLogado = null;
+        let CLIENTE_ID = null;
+        let totalDinheiroFisico = 0;
+        let totalPix = 0, totalCredito = 0, totalDebito = 0;
 
         function mostrarFormulario(tipo) {
             document.getElementById('tela-inicial').style.display = 'none';
@@ -129,20 +247,37 @@
             el.className = `aviso ${tipo}`;
             el.style.display = 'block';
         }
+
         function limparAvisos() {
             document.querySelectorAll('.aviso').forEach(el => el.style.display = 'none');
         }
 
-        // PREENCHIMENTO AUTOMÁTICO VIA CEP
+        function mostrarErro(texto) {
+            const aviso = document.getElementById('erro-geral');
+            aviso.textContent = "❌ " + texto;
+            aviso.style.display = 'block';
+            setTimeout(() => aviso.style.display = 'none', 5000);
+        }
+
+        function formatarMoeda(n) {
+            return `R$ ${n.toFixed(2).replace('.', ',')}`;
+        }
+
+        function atualizarPainel() {
+            document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
+            document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
+            document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
+            document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
+            document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
+        }
+
         document.getElementById('cad-cep').addEventListener('blur', async () => {
             const cep = document.getElementById('cad-cep').value.replace(/\D/g,'');
             if (cep.length !== 8) return;
-
             try {
                 const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
                 const dados = await res.json();
                 if (dados.erro) throw new Error('CEP não encontrado');
-
                 document.getElementById('cad-rua').value = dados.logradouro || '';
                 document.getElementById('cad-bairro').value = dados.bairro || '';
                 document.getElementById('cad-cidade').value = dados.localidade || '';
@@ -154,10 +289,8 @@
             }
         });
 
-        // CADASTRO CORRIGIDO — SEM A LINHA "EMPRESA"
         document.getElementById('form-cadastro').addEventListener('submit', async e => {
             e.preventDefault(); limparAvisos();
-
             const nome = document.getElementById('cad-nome').value.trim();
             const doc = document.getElementById('cad-documento').value.trim().replace(/\D/g,'');
             const rua = document.getElementById('cad-rua').value.trim();
@@ -170,7 +303,6 @@
             const conf = document.getElementById('cad-conf-senha').value;
 
             document.getElementById('cad-endereco').value = `${rua}, ${numero} - ${bairro} - ${cidade}/${estado}`;
-
             if (![11,14].includes(doc.length)) return mostrarAviso('avisoCad','❌ CPF 11 ou CNPJ 14 números','erro');
             if (senha !== conf) return mostrarAviso('avisoCad','❌ Senhas não coincidem','erro');
             if (senha.length < 6) return mostrarAviso('avisoCad','❌ Senha mínima 6 caracteres','erro');
@@ -186,7 +318,6 @@
                     refresh_token: authRes.data.session.refresh_token
                 });
 
-                // ✅ REMOVIDO O CAMPO "EMPRESA" — AGORA BATE COM A TABELA
                 const perfilRes = await _supabase.from('estabelecimentos').insert({
                     usuario_id: authRes.data.user.id,
                     nome: nome,
@@ -200,12 +331,10 @@
                 setTimeout(()=>mostrarFormulario('login'),2000);
             } catch (e) {
                 console.error('ERRO:', e);
-                const msg = e?.message || 'Erro ao realizar cadastro';
-                mostrarAviso('avisoCad','❌ ' + msg,'erro');
+                mostrarAviso('avisoCad','❌ ' + (e?.message || 'Erro ao realizar cadastro'),'erro');
             }
         });
 
-        // LOGIN
         document.getElementById('form-login').addEventListener('submit', async e => {
             e.preventDefault(); limparAvisos();
             const email = document.getElementById('login-email').value.trim();
@@ -216,13 +345,12 @@
                 const login = await _supabase.auth.signInWithPassword({email, password: senha});
                 if (login.error) throw login.error;
                 mostrarAviso('avisoLogin','✅ Acesso liberado!','sucesso');
-                setTimeout(()=>location.href='pagcheck.html',1000);
+                setTimeout(()=>carregarPainel(),100);
             } catch (e) {
                 mostrarAviso('avisoLogin','❌ ' + (e?.message || 'Erro ao acessar'),'erro');
             }
         });
 
-        // RECUPERAR SENHA
         async function recuperarSenha(){
             const email = prompt('Digite seu e-mail cadastrado:');
             if (!email) return;
@@ -234,272 +362,103 @@
                 alert('❌ ' + e.message);
             }
         }
+
+        function registrarDinheiroFisico() {
+            const input = document.getElementById('valor-dinheiro');
+            const valor = parseFloat(input.value);
+            const aviso = document.getElementById('aviso-dinheiro');
+            if (!valor || valor <= 0) {
+                aviso.className = 'aviso-dinheiro erro';
+                aviso.style.display = 'block';
+                aviso.textContent = '❌ Digite um valor válido';
+                return;
+            }
+            totalDinheiroFisico += valor;
+            aviso.className = 'aviso-dinheiro';
+            aviso.style.display = 'block';
+            aviso.textContent = `✅ ${formatarMoeda(valor)} adicionado!`;
+            input.value = '';
+            setTimeout(() => aviso.style.display = 'none', 3000);
+            atualizarPainel();
+        }
+
+        async function sairConta() {
+            try {
+                await _supabase.auth.signOut();
+                document.getElementById('tela-painel').style.display = 'none';
+                document.getElementById('tela-acesso').style.display = 'flex';
+            } catch (e) {
+                mostrarErro("Não foi possível sair: " + e.message);
+            }
+        }
+
+        async function carregarDadosTransacoes() {
+            if (!CLIENTE_ID) return;
+            try {
+                const { data, error } = await _supabase
+                    .from('transacoes_gerais')
+                    .select('tipo, valor, status')
+                    .eq('cliente_id', CLIENTE_ID);
+                if (error) throw error;
+                totalPix = totalCredito = totalDebito = 0;
+                data.forEach(t => {
+                    const valor = parseFloat(t.valor) || 0;
+                    if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += valor;
+                    if (t.tipo === 'CREDITO') totalCredito += valor;
+                    if (t.tipo === 'DEBITO') totalDebito += valor;
+                });
+                atualizarPainel();
+            } catch (e) {
+                console.error("Erro ao buscar transações:", e);
+            }
+        }
+
+        function ativarTempoReal() {
+            if (!CLIENTE_ID) return;
+            _supabase.channel('pagamentos')
+                .on('postgres_changes', { event: '*', table: 'transacoes_gerais', filter: `cliente_id=eq.${CLIENTE_ID}` }, carregarDadosTransacoes)
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') console.log("🔔 Atualizações em tempo real ativadas!");
+                    if (status === 'CHANNEL_ERROR') mostrarErro("Não foi possível conectar ao modo tempo real");
+                });
+        }
+
+        async function carregarPainel() {
+            try {
+                const { data: { user }, error: authErro } = await _supabase.auth.getUser();
+                if (authErro || !user) {
+                    mostrarErro("Faça login para acessar!");
+                    return;
+                }
+
+                usuarioLogado = user;
+                CLIENTE_ID = user.id;
+
+                document.getElementById('tela-acesso').style.display = 'none';
+                document.getElementById('tela-painel').style.display = 'block';
+                document.getElementById('mostra-email').textContent = user.email;
+
+                const { data: perfil, error: perfilErro } = await _supabase
+                    .from('estabelecimentos')
+                    .select('nome')
+                    .eq('usuario_id', CLIENTE_ID)
+                    .maybeSingle();
+
+                if (perfilErro) throw perfilErro;
+                document.getElementById('mostra-nome').textContent = perfil ? perfil.nome : "Estabelecimento não cadastrado";
+
+                await carregarDadosTransacoes();
+                ativarTempoReal();
+            } catch (e) {
+                console.error("❌ Erro geral:", e);
+                mostrarErro("Falha ao carregar: " + e.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (user) carregarPainel();
+        });
     </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PagCheck - Painel Principal</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { background: #f5f7fa; padding: 16px; max-width: 1350px; margin: 0 auto; min-height: 100vh; }
-    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; text-align: center; }
-    .logo { display: flex; align-items: center; gap: 10px; }
-    .logo-icone { width: 40px; height: 40px; }
-    .logo-texto { font-size: 2rem; font-weight: 800; color: #1e293b; }
-    .logo-texto span { color: #2563eb; }
-    .slogan { width: 100%; color: #64748b; font-size: 1rem; margin-top: 8px; }
-    .usuario-logado { width: 100%; background: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-    .usuario-dados { text-align: left; }
-    .usuario-nome { font-weight: bold; color: #1e293b; font-size: 1rem; }
-    .usuario-email { color: #64748b; font-size: 0.9rem; }
-    .btn-config { background: #7c3aed; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
-    .aviso-seguranca { background: #fffbeb; color: #92400e; padding: 12px; border-radius: 6px; border-left: 3px solid #f59e0b; max-width: 600px; margin: 0 auto 20px; text-align: center; }
-    .dinheiro-fisico { background: #fffbeb; border-radius: 8px; padding: 16px; max-width: 600px; margin: 0 auto 20px; }
-    .grupo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
-    .dinheiro-fisico input { flex: 1; min-width: 220px; padding: 10px; border: 1px solid #f59e0b; border-radius: 6px; font-size: 1rem; }
-    .dinheiro-fisico button { padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-    .aviso-dinheiro { margin-top: 10px; display: none; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; background: #dcfce7; color: #166534; }
-    .aviso-dinheiro.erro { background: #fee2e2; color: #dc2626; }
-    .resumo { background: white; border-radius: 8px; padding: 20px; margin-bottom: 24px; max-width: 850px; margin: 0 auto; }
-    .resumo-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-    .btn-relatorio { padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
-    .resumo-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-    .resumo-linha { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
-    .resumo-valor-conf { font-weight: bold; color: #166534; }
-    .resumo-valor-agen { font-weight: bold; color: #f59e0b; }
-    .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow-y: auto; }
-    .modal-conteudo { background: white; margin: 5% auto; padding: 24px; border-radius: 10px; width: 95%; max-width: 750px; }
-    .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
-    .fechar { font-size: 28px; font-weight: bold; cursor: pointer; color: #9ca3af; }
-    .tabela-relatorio { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
-    .tabela-relatorio th, .tabela-relatorio td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
-    .total-geral { margin-top: 18px; text-align: right; font-size: 1.1rem; font-weight: bold; }
-    .btn-baixar { margin-top: 18px; padding: 12px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-    .cards { display: grid; gap: 18px; grid-template-columns: repeat(4, 1fr); margin-top: 20px; }
-    @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
-    .card { border-radius: 10px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .card-pix { background: #eff6ff; border-left: 4px solid #2563eb; }
-    .card-credito { background: #faf5ff; border-left: 4px solid #7c3aed; }
-    .card-debito { background: #f0fdf4; border-left: 4px solid #16a34a; }
-    .card-notas { background: #fffbeb; border-left: 4px solid #f59e0b; }
-    .card-titulo { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
-    .aviso-futuro { margin-top: 10px; font-size: 0.85rem; color: #64748b; text-align: center; }
-    .erro-tela { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; }
-  </style>
-</head>
-<body>
-
-<div class="header">
-  <div class="logo">
-    <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
-      <circle cx="50" cy="50" r="42" fill="#2563eb" stroke="#93c5fd" stroke-width="4"/>
-      <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <h1 class="logo-texto">Pag<span>Check</span></h1>
-  </div>
-  <button class="btn-config" onclick="window.location.href='configuracoes.html'">⚙️ Configurar</button>
-  <p class="slogan">Confirmação direto do banco — sem golpes</p>
-</div>
-
-<div id="erro-geral" class="erro-tela"></div>
-
-<div class="usuario-logado">
-  <div class="usuario-dados">
-    <div class="usuario-nome" id="mostra-nome">Carregando dados...</div>
-    <div class="usuario-email" id="mostra-email">Carregando e-mail...</div>
-  </div>
-  <button class="btn-config" onclick="sairConta()">🚪 Sair</button>
-</div>
-
-<div class="aviso-seguranca">⚠️ Libere o produto SOMENTE após confirmar o recebimento</div>
-
-<div class="dinheiro-fisico">
-  <div class="grupo">
-    <input type="number" id="valor-dinheiro" placeholder="Valor em espécie R$" step="0.01">
-    <button onclick="registrarDinheiroFisico()">Adicionar</button>
-  </div>
-  <div id="aviso-dinheiro" class="aviso-dinheiro"></div>
-</div>
-
-<div class="resumo">
-  <div class="resumo-cabecalho">
-    <h4>📊 Resumo do Dia</h4>
-    <button class="btn-relatorio" onclick="document.getElementById('modalRelatorio').style.display='block';">📄 Ver Relatório</button>
-  </div>
-  <div class="resumo-grade">
-    <div class="resumo-linha"><span>Pix Confirmado:</span><span id="res-pix-conf">R$ 0,00</span></div>
-    <div class="resumo-linha"><span>Pix Agendado:</span><span id="res-pix-agen">R$ 0,00</span></div>
-    <div class="resumo-linha"><span>Crédito:</span><span id="res-credito">R$ 0,00</span></div>
-    <div class="resumo-linha"><span>Débito:</span><span id="res-debito">R$ 0,00</span></div>
-    <div class="resumo-linha"><span>Dinheiro Físico:</span><span id="res-dinheiro">R$ 0,00</span></div>
-    <div class="resumo-linha"><span>Total:</span><span id="total-geral-conf">R$ 0,00</span></div>
-  </div>
-</div>
-
-<div id="modalRelatorio" class="modal">
-  <div class="modal-conteudo">
-    <div class="modal-cabecalho">
-      <h3>📋 Relatório</h3>
-      <span class="fechar" onclick="document.getElementById('modalRelatorio').style.display='none'">&times;</span>
-    </div>
-    <div style="padding:20px;text-align:center;color:#666;">
-      Relatório funcionando — valores automáticos + dinheiro físico
-    </div>
-    <button class="btn-baixar" onclick="alert('Baixar relatório em breve!')">💾 Baixar CSV</button>
-  </div>
-</div>
-
-<div class="cards">
-  <div class="card card-pix"><div class="card-titulo">⚡ Pix</div><div>Aguardando dados...</div></div>
-  <div class="card card-credito"><div class="card-titulo">💳 Crédito</div><div>Aguardando dados...</div></div>
-  <div class="card card-debito"><div class="card-titulo">💳 Débito</div><div>Aguardando dados...</div></div>
-  <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
-</div>
-
-<script>
-// ==================== CONFIGURAÇÕES GERAIS ====================
-// 🔴 COLOQUE AQUI A URL E CHAVE ANÔNIMA CORRETAS DO SEU PROJETO
-const SUPABASE_URL = "https://hpahrijwfitnddlhnejz.supabase.co";
-// SUBSTITUA ABAIXO PELA CHAVE ANÔNIMA REAL DO SEU PROJETO
-const SUPABASE_ANON_KEY = "COLOQUE_SUA_CHAVE_ANONIMA_AQUI";
-
-let supabase;
-let usuarioLogado = null;
-let CLIENTE_ID = null;
-let totalDinheiroFisico = 0;
-let totalPix = 0, totalCredito = 0, totalDebito = 0;
-
-// ==================== FUNÇÕES AUXILIARES ====================
-function mostrarErro(texto) {
-  const aviso = document.getElementById('erro-geral');
-  aviso.textContent = "❌ " + texto;
-  aviso.style.display = 'block';
-  setTimeout(() => aviso.style.display = 'none', 5000);
-}
-
-function atualizarPainel() {
-  const f = n => `R$ ${n.toFixed(2).replace('.', ',')}`;
-  document.getElementById('res-dinheiro').textContent = f(totalDinheiroFisico);
-  document.getElementById('res-pix-conf').textContent = f(totalPix);
-  document.getElementById('res-credito').textContent = f(totalCredito);
-  document.getElementById('res-debito').textContent = f(totalDebito);
-  document.getElementById('total-geral-conf').textContent = f(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
-}
-
-function registrarDinheiroFisico() {
-  const input = document.getElementById('valor-dinheiro');
-  const valor = parseFloat(input.value);
-  const aviso = document.getElementById('aviso-dinheiro');
-  
-  if (!valor || valor <= 0) {
-    aviso.className = 'aviso-dinheiro erro';
-    aviso.style.display = 'block';
-    aviso.textContent = '❌ Digite um valor válido';
-    return;
-  }
-  
-  totalDinheiroFisico += valor;
-  aviso.className = 'aviso-dinheiro';
-  aviso.style.display = 'block';
-  aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
-  input.value = '';
-  setTimeout(() => aviso.style.display = 'none', 3000);
-  atualizarPainel();
-}
-
-async function sairConta() {
-  try {
-    await supabase.auth.signOut();
-    window.location.href = 'index.html';
-  } catch (e) {
-    mostrarErro("Não foi possível sair: " + e.message);
-  }
-}
-
-// ==================== CARREGAR DADOS DO SUPABASE ====================
-async function carregarDados() {
-  if (!supabase || !CLIENTE_ID) return;
-  
-  try {
-    const { data, error } = await supabase
-      .from('transacoes_gerais')
-      .select('tipo, valor, status')
-      .eq('cliente_id', CLIENTE_ID);
-    
-    if (error) throw error;
-    
-    totalPix = totalCredito = totalDebito = 0;
-    data.forEach(t => {
-      const valor = parseFloat(t.valor) || 0;
-      if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += valor;
-      if (t.tipo === 'CREDITO') totalCredito += valor;
-      if (t.tipo === 'DEBITO') totalDebito += valor;
-    });
-    atualizarPainel();
-  } catch (e) {
-    console.error("Erro ao buscar transações:", e);
-  }
-}
-
-function tempoReal() {
-  if (!CLIENTE_ID) return;
-  supabase.channel('pagamentos')
-    .on('postgres_changes', { event: '*', table: 'transacoes_gerais', filter: `cliente_id=eq.${CLIENTE_ID}` }, carregarDados)
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') console.log("🔔 Atualizações em tempo real ativadas!");
-      if (status === 'CHANNEL_ERROR') mostrarErro("Não foi possível conectar ao modo tempo real");
-    });
-}
-
-// ==================== INICIALIZAÇÃO PRINCIPAL ====================
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    // 1. Cria conexão com o Supabase
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log("✅ Conectado ao Supabase!");
-
-    // 2. Verifica se usuário está logado
-    const { data: { user }, error: authErro } = await supabase.auth.getUser();
-    if (authErro || !user) {
-      mostrarErro("Faça login para acessar!");
-      setTimeout(() => window.location.href = 'index.html', 2000);
-      return;
-    }
-
-    usuarioLogado = user;
-    CLIENTE_ID = user.id;
-
-    // 3. Mostra dados do usuário na tela
-    document.getElementById('mostra-email').textContent = user.email;
-    console.log("✅ Usuário logado:", user.email);
-
-    // 4. Busca nome da tabela estabelecimentos
-    const { data: perfil, error: perfilErro } = await supabase
-      .from('estabelecimentos')
-      .select('nome')
-      .eq('usuario_id', CLIENTE_ID)
-      .maybeSingle();
-
-    if (perfilErro) throw perfilErro;
-    
-    document.getElementById('mostra-nome').textContent = perfil ? perfil.nome : "Estabelecimento não cadastrado";
-
-    // 5. Carrega restante dos dados
-    await carregarDados();
-    tempoReal();
-
-  } catch (e) {
-    console.error("❌ Erro geral:", e);
-    mostrarErro("Falha ao carregar: " + e.message);
-  }
-});
-</script>
-
 </body>
 </html>
