@@ -29,7 +29,7 @@
         .form-panel.active { display: block; }
         input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; }
         input[readonly] { background: #f9f9f9; color: #555; cursor: not-allowed; }
-        button:not(.btn-voltar):not(.btn-inicial):not(.btn-config):not(.btn-relatorio) { 
+        button:not(.btn-voltar):not(.btn-inicial):not(.btn-config):not(.btn-relatorio):not(.btn-baixar) { 
             width: auto; 
             padding: 10px 24px; 
             display: block; 
@@ -68,14 +68,16 @@
         .modal-conteudo { background: white; margin: 5% auto; padding: 24px; border-radius: 10px; width: 95%; max-width: 750px; }
         .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
         .fechar { font-size: 28px; font-weight: bold; cursor: pointer; color: #9ca3af; }
-
-        /* ✅ ALTERAÇÃO AQUI: Cards centralizados */
+        .filtro-periodo { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .filtro-periodo label { font-weight: bold; color: #1e293b; }
+        .filtro-periodo input { width: auto; padding: 6px; margin: 4px; }
+        .btn-baixar { display: block; margin: 0 auto; padding: 10px 24px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; width: auto; }
         .cards { 
             display: grid; 
             gap: 18px; 
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
             margin-top: 20px;
-            justify-items: center; /* Centraliza os cards na tela */
+            justify-items: center;
         }
         @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
@@ -85,13 +87,12 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             width: 100%;
             max-width: 220px;
-            text-align: center; /* ✅ Texto centralizado dentro do card */
+            text-align: center;
         }
         .card-pix { background: #eff6ff; border-left: 4px solid #2563eb; }
         .card-credito { background: #faf5ff; border-left: 4px solid #7c3aed; }
         .card-debito { background: #f0fdf4; border-left: 4px solid #16a34a; }
         .card-titulo { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
-        .aviso-futuro { margin-top: 10px; font-size: 0.85rem; color: #64748b; text-align: center; }
         .erro-tela { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; }
     </style>
 </head>
@@ -198,13 +199,20 @@
             <div id="modalRelatorio" class="modal">
                 <div class="modal-conteudo">
                     <div class="modal-cabecalho">
-                        <h3>📋 Relatório</h3>
+                        <h3>📋 Relatório de Transações</h3>
                         <span class="fechar" onclick="document.getElementById('modalRelatorio').style.display='none'">&times;</span>
                     </div>
-                    <div style="padding:20px;text-align:center;color:#666;">
-                        Relatório funcionando — valores automáticos + dinheiro físico
+                    <div class="filtro-periodo">
+                        <div>
+                            <label>Período De:</label>
+                            <input type="date" id="data-inicio">
+                        </div>
+                        <div>
+                            <label>Até:</label>
+                            <input type="date" id="data-fim">
+                        </div>
                     </div>
-                    <button class="btn-baixar" onclick="alert('Baixar relatório em breve!')">💾 Baixar CSV</button>
+                    <button class="btn-baixar" onclick="gerarRelatorioCSV()">💾 Baixar em CSV</button>
                 </div>
             </div>
             <div class="cards">
@@ -221,7 +229,6 @@
 
         let usuarioLogado = null;
         let CLIENTE_ID = null;
-        let totalDinheiroFisico = 0;
         let totalPix = 0, totalCredito = 0, totalDebito = 0;
 
         function mostrarFormulario(tipo) {
@@ -261,10 +268,10 @@
         }
 
         function atualizarPainel() {
-            document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
             document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
             document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
             document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
+            document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
             document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
         }
 
@@ -360,23 +367,40 @@
             }
         }
 
-        function registrarDinheiroFisico() {
+        async function registrarDinheiroFisico() {
             const input = document.getElementById('valor-dinheiro');
             const valor = parseFloat(input.value);
             const aviso = document.getElementById('aviso-dinheiro');
+            
             if (!valor || valor <= 0) {
                 aviso.className = 'aviso-dinheiro erro';
                 aviso.style.display = 'block';
                 aviso.textContent = '❌ Digite um valor válido';
                 return;
             }
-            totalDinheiroFisico += valor;
-            aviso.className = 'aviso-dinheiro';
-            aviso.style.display = 'block';
-            aviso.textContent = `✅ ${formatarMoeda(valor)} adicionado!`;
-            input.value = '';
-            setTimeout(() => aviso.style.display = 'none', 3000);
-            atualizarPainel();
+
+            try {
+                await _supabase.from('transacoes_gerais').insert({
+                    cliente_id: CLIENTE_ID,
+                    tipo: 'DINHEIRO',
+                    valor: valor,
+                    status: 'RECEBIDO',
+                    data_transacao: new Date().toISOString()
+                });
+
+                aviso.className = 'aviso-dinheiro';
+                aviso.style.display = 'block';
+                aviso.textContent = `✅ ${formatarMoeda(valor)} adicionado e salvo!`;
+                input.value = '';
+                setTimeout(() => aviso.style.display = 'none', 3000);
+                
+                await carregarDadosTransacoes();
+
+            } catch (e) {
+                aviso.className = 'aviso-dinheiro erro';
+                aviso.style.display = 'block';
+                aviso.textContent = '❌ Erro ao salvar: ' + e.message;
+            }
         }
 
         async function sairConta() {
@@ -394,15 +418,16 @@
             try {
                 const { data, error } = await _supabase
                     .from('transacoes_gerais')
-                    .select('tipo, valor, status')
+                    .select('tipo, valor, status, data_transacao')
                     .eq('cliente_id', CLIENTE_ID);
                 if (error) throw error;
-                totalPix = totalCredito = totalDebito = 0;
+                totalPix = totalCredito = totalDebito = totalDinheiroFisico = 0;
                 data.forEach(t => {
                     const valor = parseFloat(t.valor) || 0;
                     if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += valor;
                     if (t.tipo === 'CREDITO') totalCredito += valor;
                     if (t.tipo === 'DEBITO') totalDebito += valor;
+                    if (t.tipo === 'DINHEIRO' && t.status === 'RECEBIDO') totalDinheiroFisico += valor;
                 });
                 atualizarPainel();
             } catch (e) {
@@ -418,6 +443,48 @@
                     if (status === 'SUBSCRIBED') console.log("🔔 Atualizações em tempo real ativadas!");
                     if (status === 'CHANNEL_ERROR') mostrarErro("Não foi possível conectar ao modo tempo real");
                 });
+        }
+
+        async function gerarRelatorioCSV() {
+            if (!CLIENTE_ID) return alert('❌ Você precisa estar logado!');
+
+            const dataInicio = document.getElementById('data-inicio').value;
+            const dataFim = document.getElementById('data-fim').value;
+
+            if (!dataInicio || !dataFim) return alert('❌ Selecione o período completo!');
+
+            try {
+                const inicio = new Date(dataInicio);
+                const fim = new Date(dataFim + 'T23:59:59');
+
+                const { data, error } = await _supabase
+                    .from('transacoes_gerais')
+                    .select('tipo, valor, status, data_transacao')
+                    .eq('cliente_id', CLIENTE_ID)
+                    .gte('data_transacao', inicio.toISOString())
+                    .lte('data_transacao', fim.toISOString())
+                    .order('data_transacao', { ascending: false });
+
+                if (error) throw error;
+                if (!data.length) return alert('ℹ️ Nenhuma transação encontrada nesse período!');
+
+                let csv = "Data;Tipo;Valor;Status\n";
+                data.forEach(t => {
+                    const dataFormatada = new Date(t.data_transacao).toLocaleString('pt-BR');
+                    csv += `${dataFormatada};${t.tipo};R$ ${parseFloat(t.valor).toFixed(2).replace('.', ',')};${t.status}\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `relatorio-pagcheck-${dataInicio.replaceAll('-','-')}-a-${dataFim.replaceAll('-','-')}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+            } catch (erro) {
+                alert('❌ Erro ao gerar relatório: ' + erro.message);
+            }
         }
 
         async function carregarPainel() {
