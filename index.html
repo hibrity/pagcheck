@@ -211,6 +211,7 @@
                 <div class="card card-pix"><div class="card-titulo">⚡ Pix</div><div>Aguardando dados...</div></div>
                 <div class="card card-credito"><div class="card-titulo">💳 Crédito</div><div>Aguardando dados...</div></div>
                 <div class="card card-debito"><div class="card-titulo">💳 Débito</div><div>Aguardando dados...</div></div>
+                <div class="card card-notas"><div class="card-titulo">💵 Dinheiro Físico</div><div id="card-dinheiro">Aguardando dados...</div></div>
                 <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
             </div>
         </div>
@@ -268,6 +269,7 @@
             document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
             document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
             document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
+            document.getElementById('card-dinheiro').textContent = totalDinheiroFisico > 0 ? formatarMoeda(totalDinheiroFisico) : "Aguardando dados...";
             document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
         }
 
