@@ -68,22 +68,35 @@
         .modal-conteudo { background: white; margin: 5% auto; padding: 24px; border-radius: 10px; width: 95%; max-width: 750px; }
         .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
         .fechar { font-size: 28px; font-weight: bold; cursor: pointer; color: #9ca3af; }
-        .cards { display: grid; gap: 18px; grid-template-columns: repeat(4, 1fr); margin-top: 20px; }
+
+        /* ✅ ALTERAÇÃO AQUI: Cards centralizados */
+        .cards { 
+            display: grid; 
+            gap: 18px; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            margin-top: 20px;
+            justify-items: center; /* Centraliza os cards na tela */
+        }
         @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
-        .card { border-radius: 10px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card { 
+            border-radius: 10px; 
+            padding: 18px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            width: 100%;
+            max-width: 220px;
+            text-align: center; /* ✅ Texto centralizado dentro do card */
+        }
         .card-pix { background: #eff6ff; border-left: 4px solid #2563eb; }
         .card-credito { background: #faf5ff; border-left: 4px solid #7c3aed; }
         .card-debito { background: #f0fdf4; border-left: 4px solid #16a34a; }
-        .card-notas { background: #fffbeb; border-left: 4px solid #f59e0b; }
-        .card-titulo { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
+        .card-titulo { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
         .aviso-futuro { margin-top: 10px; font-size: 0.85rem; color: #64748b; text-align: center; }
         .erro-tela { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- TELA DE ACESSO (Login/Cadastro) -->
         <div id="tela-acesso" class="tela-acesso">
             <div class="painel-card">
                 <div class="logo-area">
@@ -96,17 +109,14 @@
                     </div>
                     <p class="slogan">Confirmação segura de pagamentos</p>
                 </div>
-
                 <div id="tela-inicial" class="tela-inicial">
                     <button class="btn-inicial" onclick="mostrarFormulario('login')">Entrar</button>
                     <button class="btn-inicial btn-secundario" onclick="mostrarFormulario('cadastro')">Criar Conta</button>
                 </div>
-
                 <div id="area-formularios" class="area-formularios">
                     <div class="voltar">
                         <button class="btn-voltar" onclick="voltarInicio()">← Voltar</button>
                     </div>
-
                     <div id="login" class="form-panel">
                         <form id="form-login">
                             <input type="email" id="login-email" placeholder="Seu e-mail" required>
@@ -118,7 +128,6 @@
                             <a href="#" onclick="recuperarSenha()">Esqueceu a senha?</a>
                         </div>
                     </div>
-
                     <div id="cadastro" class="form-panel">
                         <form id="form-cadastro">
                             <input type="text" id="cad-nome" placeholder="Nome Completo / Razão Social" required>
@@ -144,8 +153,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- TELA DO PAINEL PRINCIPAL -->
         <div id="tela-painel" class="tela-painel">
             <div class="header">
                 <div class="logo">
@@ -158,9 +165,7 @@
                 <button class="btn-config" onclick="alert('Página de configurações em desenvolvimento')">⚙️ Configurar</button>
                 <p class="slogan">Confirmação direto do banco — sem golpes</p>
             </div>
-
             <div id="erro-geral" class="erro-tela"></div>
-
             <div class="usuario-logado">
                 <div class="usuario-dados">
                     <div class="usuario-nome" id="mostra-nome">Carregando dados...</div>
@@ -168,9 +173,7 @@
                 </div>
                 <button class="btn-config" onclick="sairConta()">🚪 Sair</button>
             </div>
-
             <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE após confirmar o recebimento</div>
-
             <div class="dinheiro-fisico">
                 <div class="grupo">
                     <input type="number" id="valor-dinheiro" placeholder="Valor em espécie R$" step="0.01">
@@ -178,7 +181,6 @@
                 </div>
                 <div id="aviso-dinheiro" class="aviso-dinheiro"></div>
             </div>
-
             <div class="resumo">
                 <div class="resumo-cabecalho">
                     <h4>📊 Resumo do Dia</h4>
@@ -193,7 +195,6 @@
                     <div class="resumo-linha"><span>Total:</span><span id="total-geral-conf">R$ 0,00</span></div>
                 </div>
             </div>
-
             <div id="modalRelatorio" class="modal">
                 <div class="modal-conteudo">
                     <div class="modal-cabecalho">
@@ -206,7 +207,6 @@
                     <button class="btn-baixar" onclick="alert('Baixar relatório em breve!')">💾 Baixar CSV</button>
                 </div>
             </div>
-
             <div class="cards">
                 <div class="card card-pix"><div class="card-titulo">⚡ Pix</div><div>Aguardando dados...</div></div>
                 <div class="card card-credito"><div class="card-titulo">💳 Crédito</div><div>Aguardando dados...</div></div>
@@ -214,9 +214,7 @@
             </div>
         </div>
     </div>
-
     <script>
-        // ==================== CONFIGURAÇÕES DO SEU PROJETO ====================
         const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
