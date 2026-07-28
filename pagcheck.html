@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PagCheck - Painel Principal</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- BIBLIOTECA CARREGADA CORRETAMENTE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     body { background: #f5f7fa; padding: 16px; max-width: 1350px; margin: 0 auto; min-height: 100vh; }
@@ -51,6 +52,7 @@
     .card-notas { background: #fffbeb; border-left: 4px solid #f59e0b; }
     .card-titulo { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
     .aviso-futuro { margin-top: 10px; font-size: 0.85rem; color: #64748b; text-align: center; }
+    .erro-tela { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; }
   </style>
 </head>
 <body>
@@ -67,11 +69,14 @@
   <p class="slogan">Confirmação direto do banco — sem golpes</p>
 </div>
 
+<!-- AVISO DE ERRO VISÍVEL -->
+<div id="erro-geral" class="erro-tela"></div>
+
 <!-- ÁREA COM NOME E E-MAIL DO SUPABASE -->
 <div class="usuario-logado">
   <div class="usuario-dados">
-    <div class="usuario-nome" id="mostra-nome">Buscando dados...</div>
-    <div class="usuario-email" id="mostra-email">Buscando...</div>
+    <div class="usuario-nome" id="mostra-nome">Carregando dados...</div>
+    <div class="usuario-email" id="mostra-email">Carregando e-mail...</div>
   </div>
   <button class="btn-config" onclick="sairConta()">🚪 Sair</button>
 </div>
@@ -110,38 +115,35 @@
     <div style="padding:20px;text-align:center;color:#666;">
       Relatório funcionando — valores automáticos + dinheiro físico
     </div>
-    <button class="btn-baixar" onclick="alert('Baixar relatório aqui quando quiser!')">💾 Baixar CSV</button>
+    <button class="btn-baixar" onclick="alert('Baixar relatório em breve!')">💾 Baixar CSV</button>
   </div>
 </div>
 
 <div class="cards">
-  <div class="card card-pix"><div class="card-titulo">⚡ Pix</div><div>Aguardando...</div></div>
-  <div class="card card-credito"><div class="card-titulo">💳 Crédito</div><div>Aguardando...</div></div>
-  <div class="card card-debito"><div class="card-titulo">💳 Débito</div><div>Aguardando...</div></div>
+  <div class="card card-pix"><div class="card-titulo">⚡ Pix</div><div>Aguardando dados...</div></div>
+  <div class="card card-credito"><div class="card-titulo">💳 Crédito</div><div>Aguardando dados...</div></div>
+  <div class="card card-debito"><div class="card-titulo">💳 Débito</div><div>Aguardando dados...</div></div>
   <div class="card card-notas"><div class="card-titulo">💵 Verificação de Notas</div><div>Em desenvolvimento</div><div class="aviso-futuro">🔜 Em breve</div></div>
 </div>
 
 <script>
+// ==================== CONFIGURAÇÕES GERAIS ====================
+// 🔴 COLOQUE AQUI A URL E CHAVE DO SEU PROJETO ATIVO DO FINANCO
+const SUPABASE_URL = "https://hpahrijwfitnddlhnejz.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_hQL07sR9YzFik7BPVf6ZdA_Krm7Xi8I";
+
+let supabase;
+let usuarioLogado = null;
+let CLIENTE_ID = null;
 let totalDinheiroFisico = 0;
 let totalPix = 0, totalCredito = 0, totalDebito = 0;
 
-function registrarDinheiroFisico() {
-  const input = document.getElementById('valor-dinheiro');
-  const valor = parseFloat(input.value);
-  const aviso = document.getElementById('aviso-dinheiro');
-  if (!valor || valor <= 0) {
-    aviso.className = 'aviso-dinheiro erro';
-    aviso.style.display = 'block';
-    aviso.textContent = '❌ Digite um valor válido';
-    return;
-  }
-  totalDinheiroFisico += valor;
-  aviso.className = 'aviso-dinheiro';
+// ==================== FUNÇÕES AUXILIARES ====================
+function mostrarErro(texto) {
+  const aviso = document.getElementById('erro-geral');
+  aviso.textContent = "❌ " + texto;
   aviso.style.display = 'block';
-  aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
-  input.value = '';
-  setTimeout(() => aviso.style.display = 'none', 3000);
-  atualizarPainel();
+  setTimeout(() => aviso.style.display = 'none', 5000);
 }
 
 function atualizarPainel() {
@@ -153,88 +155,117 @@ function atualizarPainel() {
   document.getElementById('total-geral-conf').textContent = f(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
 }
 
-async function sairConta() {
-  await supabase.auth.signOut();
-  location.href = 'index.html';
-}
-</script>
-
-<script>
-const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
-
-let supabase;
-let usuarioLogado = null;
-let CLIENTE_ID = null;
-
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      alert("⚠️ Faça login primeiro!");
-      window.location.href = 'index.html';
-      return;
-    }
-
-    usuarioLogado = user;
-    CLIENTE_ID = user.id;
-
-    // ✅ EMAIL VEM DIRETO DA AUTENTICAÇÃO DO SUPABASE
-    document.getElementById('mostra-email').textContent = user.email;
-
-    // ✅ NOME VEM EXCLUSIVAMENTE DA TABELA estabelecimentos
-    const { data: perfil, error } = await supabase
-      .from('estabelecimentos')
-      .select('nome')
-      .eq('usuario_id', CLIENTE_ID)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Erro ao buscar perfil:", error);
-      document.getElementById('mostra-nome').textContent = "Perfil não encontrado";
-    } else if (perfil) {
-      document.getElementById('mostra-nome').textContent = perfil.nome;
-    } else {
-      document.getElementById('mostra-nome').textContent = "Cadastro incompleto";
-    }
-
-    console.log("✅ Usuário logado - ID:", CLIENTE_ID);
-    await carregarDados();
-    tempoReal();
-  } catch (e) {
-    console.error("❌ Erro geral:", e);
-    window.location.href = 'index.html';
-  }
-});
-
-async function carregarDados() {
-  if (!supabase || !CLIENTE_ID) return;
-  const { data, error } = await supabase
-    .from('transacoes_gerais')
-    .select('tipo, valor, status')
-    .eq('cliente_id', CLIENTE_ID);
-  if (error) {
-    console.error("Erro busca:", error);
+function registrarDinheiroFisico() {
+  const input = document.getElementById('valor-dinheiro');
+  const valor = parseFloat(input.value);
+  const aviso = document.getElementById('aviso-dinheiro');
+  
+  if (!valor || valor <= 0) {
+    aviso.className = 'aviso-dinheiro erro';
+    aviso.style.display = 'block';
+    aviso.textContent = '❌ Digite um valor válido';
     return;
   }
-  totalPix = totalCredito = totalDebito = 0;
-  data.forEach(t => {
-    const valor = parseFloat(t.valor) || 0;
-    if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += valor;
-    if (t.tipo === 'CREDITO') totalCredito += valor;
-    if (t.tipo === 'DEBITO') totalDebito += valor;
-  });
+  
+  totalDinheiroFisico += valor;
+  aviso.className = 'aviso-dinheiro';
+  aviso.style.display = 'block';
+  aviso.textContent = `✅ R$ ${valor.toFixed(2).replace('.', ',')} adicionado!`;
+  input.value = '';
+  setTimeout(() => aviso.style.display = 'none', 3000);
   atualizarPainel();
+}
+
+async function sairConta() {
+  try {
+    await supabase.auth.signOut();
+    window.location.href = 'index.html';
+  } catch (e) {
+    mostrarErro("Não foi possível sair: " + e.message);
+  }
+}
+
+// ==================== CARREGAR DADOS DO SUPABASE ====================
+async function carregarDados() {
+  if (!supabase || !CLIENTE_ID) return;
+  
+  try {
+    const { data, error } = await supabase
+      .from('transacoes_gerais')
+      .select('tipo, valor, status')
+      .eq('cliente_id', CLIENTE_ID);
+    
+    if (error) throw error;
+    
+    totalPix = totalCredito = totalDebito = 0;
+    data.forEach(t => {
+      const valor = parseFloat(t.valor) || 0;
+      if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += valor;
+      if (t.tipo === 'CREDITO') totalCredito += valor;
+      if (t.tipo === 'DEBITO') totalDebito += valor;
+    });
+    atualizarPainel();
+  } catch (e) {
+    console.error("Erro ao buscar transações:", e);
+    // Não mostra erro na tela se não tiver transações ainda
+  }
 }
 
 function tempoReal() {
   if (!CLIENTE_ID) return;
   supabase.channel('pagamentos')
     .on('postgres_changes', { event: '*', table: 'transacoes_gerais', filter: `cliente_id=eq.${CLIENTE_ID}` }, carregarDados)
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') console.log("🔔 Atualizações em tempo real ativadas!");
+    });
 }
+
+// ==================== INICIALIZAÇÃO PRINCIPAL ====================
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // 1. Cria conexão com o Supabase PRIMEIRO
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log("✅ Conectado ao Supabase!");
+
+    // 2. Verifica se usuário está logado
+    const { data: { user }, error: authErro } = await supabase.auth.getUser();
+    if (authErro || !user) {
+      mostrarErro("Faça login para acessar!");
+      setTimeout(() => window.location.href = 'index.html', 2000);
+      return;
+    }
+
+    usuarioLogado = user;
+    CLIENTE_ID = user.id;
+
+    // 3. Mostra dados do usuário NA TELA
+    document.getElementById('mostra-email').textContent = user.email;
+    console.log("✅ Usuário logado:", user.email);
+
+    // 4. Busca nome da tabela estabelecimentos
+    const { data: perfil, error: perfilErro } = await supabase
+      .from('estabelecimentos')
+      .select('nome')
+      .eq('usuario_id', CLIENTE_ID)
+      .maybeSingle();
+
+    if (perfilErro) throw perfilErro;
+    
+    if (perfil) {
+      document.getElementById('mostra-nome').textContent = perfil.nome;
+    } else {
+      document.getElementById('mostra-nome').textContent = "Estabelecimento não cadastrado";
+    }
+
+    // 5. Carrega restante dos dados
+    await carregarDados();
+    tempoReal();
+
+  } catch (e) {
+    console.error("❌ Erro geral:", e);
+    mostrarErro("Falha ao carregar: " + e.message);
+  }
+});
 </script>
 
 </body>
