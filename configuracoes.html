@@ -131,6 +131,8 @@
 
 <script>
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
+// Se quiser pegar automaticamente o usuário logado, troque essa linha
+// por buscar do auth, igual no painel principal
 const CLIENTE_ID = "27a5be90-e506-4314-ac44-2a8bdef83d4e";
 
 const guias = {
@@ -198,14 +200,14 @@ function executarGerarLink() {
     return;
   }
 
-  const link = `${SUPABASE_URL}/functions/v1/receber-pagamentos?cliente=${CLIENTE_ID}&origem=${sistema}`;
+  // ✅ Nome da função corrigido para: receber-transacao
+  const link = `${SUPABASE_URL}/functions/v1/receber-transacao?cliente=${CLIENTE_ID}&origem=${sistema}`;
   document.getElementById('link-exclusivo').textContent = link;
   
   document.getElementById('area-link').classList.remove('oculto');
   document.getElementById('passos-sistema').innerHTML = guias[sistema] || guias.outro;
   document.getElementById('area-instrucoes').classList.remove('oculto');
 
-  // Mostra aviso apenas se escolher OpenPix
   if (sistema === 'openpix') {
     document.getElementById('aviso-openpix').classList.remove('oculto');
   } else {
