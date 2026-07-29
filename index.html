@@ -123,13 +123,14 @@
         .lado-esquerdo { 
             display: flex; 
             flex-direction: column; 
-            align-items: flex-start; 
+            align-items: center; /* CENTRALIZA LOGO E SLOGAN */
             gap: 4px; 
             flex: 1 1 auto; 
             min-width: 160px; 
+            text-align: center; /* CENTRALIZA O TEXTO */
         }
-        .logo-cabecalho { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .slogan-cabecalho { font-size: 0.85rem; color: #6b7280; font-weight: normal; margin: 0; text-align: left; }
+        .logo-cabecalho { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .slogan-cabecalho { font-size: 0.85rem; color: #6b7280; font-weight: normal; margin: 0; text-align: center; }
         .info-usuario { 
             display: flex; 
             flex-direction: column; 
@@ -245,15 +246,14 @@
             .grupo { flex-wrap: wrap; }
             .dinheiro-fisico input { width: 100%; }
             .dinheiro-fisico button { width: 100%; justify-content: center; }
-            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .info-usuario { text-align: left; width: 100%; }
+            .header { flex-direction: column; align-items: center; gap: 15px; }
+            .info-usuario { text-align: center; width: 100%; }
         }
         @media (max-width: 480px) {
             body { padding: 10px; }
             .painel-card { padding: 25px 20px; }
             .logo-texto { font-size: 1.6rem; }
             .logo-icone { width: 40px; height: 40px; }
-            .slogan-cabecalho { text-align: center; width: 100%; }
             .linha-dupla { flex-direction: column; gap: 6px; }
             .linha-dupla input { width: 100%; }
             .resumo-cabecalho { flex-direction: column; align-items: flex-start; }
@@ -334,13 +334,12 @@
                     <p class="slogan-cabecalho">Confirmação direto do banco — sem golpes</p>
                 </div>
 
-                <!-- AGORA COMEÇA VAZIO, SÓ RECEBE OS DADOS DO USUÁRIO LOGADO -->
                 <div class="info-usuario">
                     <span class="info-nome" id="mostra-nome"></span>
                     <span class="info-email" id="mostra-email"></span>
                 </div>
             </div>
-
+           
             <div class="dinheiro-fisico">
                 <div class="grupo">
                     <input type="number" id="valor-dinheiro" placeholder="Valor em espécie R$" step="0.01" min="0">
@@ -579,7 +578,6 @@
                 if (!user) return;
                 CLIENTE_ID = user.id;
                 const {data:perfil} = await _supabase.from('estabelecimentos').select('nome').eq('usuario_id',user.id).maybeSingle();
-                // AGORA SÓ MOSTRA O DADO REAL, SEM VALOR FIXO DE EXEMPLO
                 document.getElementById('mostra-nome').textContent = perfil?.nome || '';
                 document.getElementById('mostra-email').textContent = user.email || '';
                 document.getElementById('tela-acesso').style.display = 'none';
