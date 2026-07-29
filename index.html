@@ -12,24 +12,81 @@
         body { background: #f4f7f6; min-height: 100vh; padding: 15px; display: flex; flex-direction: column; }
         .container { max-width: 100%; margin: 0 auto; width: 100%; flex: 1; }
         .tela-acesso { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
-        .painel-card { background: white; padding: 30px 25px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
-        .logo-area { text-align: center; margin-bottom: 25px; }
+        .painel-card { 
+            background: white; 
+            padding: 30px 25px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08); 
+            width: 100%; 
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .logo-area { text-align: center; margin-bottom: 25px; width: 100%; }
         .logo { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .logo-icone { width: 44px; height: 44px; }
         .logo-texto { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 0; }
         .logo-texto span { color: #2563eb; }
         .slogan { color: #64748b; font-size: 0.9rem; margin-top: 6px; }
-        .tela-inicial { display: flex; flex-direction: column; gap: 12px; align-items: center; }
-        .btn-inicial { background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 220px; transition: background 0.2s; }
+        .tela-inicial { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            align-items: center;
+            width: 100%;
+        }
+        .btn-inicial { 
+            background: #2563eb; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 15px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            width: 100%; 
+            max-width: 220px; 
+            transition: background 0.2s;
+            margin: 0 auto !important;
+            display: block;
+        }
         .btn-inicial:hover { background: #1d4ed8; }
         .btn-secundario { background: #e2e8f0; color: #1e293b; }
         .btn-secundario:hover { background: #cbd5e1; }
-        .area-formularios { display: none; }
-        .voltar { text-align: left; margin-bottom: 15px; }
+        .area-formularios { 
+            display: none; 
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .voltar { 
+            text-align: left; 
+            margin-bottom: 15px; 
+            width: 100%; 
+        }
         .btn-voltar { background: none; border: none; color: #2563eb; font-size: 14px; cursor: pointer; padding: 0; }
-        .form-panel { display: none; }
+        .form-panel { 
+            display: none; 
+            width: 100%;
+        }
         .form-panel.active { display: block; }
-        input { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; transition: border 0.2s; }
+        form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 6px 0; 
+            border: 1px solid #d1d5db; 
+            border-radius: 6px; 
+            font-size: 15px; 
+            transition: border 0.2s; 
+        }
         input:focus { outline: none; border-color: #2563eb; }
         input[readonly] { background: #f9fafb; color: #4b5563; cursor: not-allowed; }
         
@@ -43,23 +100,49 @@
             margin-top: 8px;
         }
 
-        .links { text-align: center; margin-top: 15px; }
+        .links { text-align: center; margin-top: 15px; width: 100%; }
         .links a { color: #2563eb; text-decoration: none; font-size: 14px; }
         .links a:hover { text-decoration: underline; }
-        .aviso { margin-top: 12px; padding: 10px; border-radius: 6px; display: none; font-size: 14px; font-weight: 500; }
+        .aviso { margin-top: 12px; padding: 10px; border-radius: 6px; display: none; font-size: 14px; font-weight: 500; width: 100%; text-align: center; }
         .erro { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
         .sucesso { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-        .linha-dupla { display: flex; gap: 8px; flex-wrap: wrap; }
+        .linha-dupla { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
         .linha-dupla input { flex: 1; min-width: 120px; }
         .tela-painel { display: none; }
 
-        .header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #e5e7eb; }
-        .lado-esquerdo { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1 1 auto; min-width: 180px; }
-        .logo-cabecalho { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
-        .slogan-cabecalho { font-size: 0.85rem; color: #6b7280; font-weight: normal; margin: 0; text-align: center; }
-        .info-usuario { display: flex; flex-direction: column; gap: 2px; text-align: right; flex: 0 0 auto; min-width: 140px; }
-        .info-nome { font-size: 0.85rem; font-weight: 500; color: #4b5563; word-break: break-word; }
-        .info-email { font-size: 0.75rem; color: #9ca3af; word-break: break-all; }
+        /* === CABEÇALHO AJUSTADO PARA TODAS AS TELAS === */
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            margin-bottom: 20px; 
+            padding-bottom: 15px; 
+            border-bottom: 1px solid #e5e7eb; 
+        }
+        .lado-esquerdo { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            gap: 4px; 
+            flex: 1 1 auto; 
+            min-width: 160px; 
+        }
+        .logo-cabecalho { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .slogan-cabecalho { font-size: 0.85rem; color: #6b7280; font-weight: normal; margin: 0; text-align: left; }
+        .info-usuario { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 2px; 
+            text-align: right; 
+            flex: 0 0 auto; 
+            min-width: 140px; 
+            max-width: 100%;
+            word-break: break-word;
+        }
+        .info-nome { font-size: 0.85rem; font-weight: 500; color: #4b5563; word-break: break-word; line-height: 1.3; }
+        .info-email { font-size: 0.75rem; color: #9ca3af; word-break: break-all; line-height: 1.3; }
 
         .aviso-seguranca { background: #fffbeb; color: #92400e; padding: 12px; border-radius: 6px; border-left: 4px solid #f59e0b; width: 100%; max-width: 100%; margin: 0 0 20px 0; text-align: center; font-size: 0.9rem; }
         .dinheiro-fisico { background: white; border-radius: 8px; padding: 15px; width: 100%; max-width: 100%; margin: 0 0 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
@@ -110,7 +193,6 @@
         .btn-baixar { display: block; margin: 0 auto; padding: 10px 22px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: background 0.2s; width: auto; }
         .btn-baixar:hover { background: #1d4ed8; }
 
-        /* 👇 CORREÇÃO DOS CARDS AQUI */
         .cards { 
             display: grid; 
             gap: 18px; 
@@ -118,7 +200,7 @@
             margin-top: 20px; 
             width: 100%; 
             max-width: 100%;
-            align-items: stretch; /* Garante que todos tenham a mesma altura */
+            align-items: stretch;
         }
         .card { 
             background: white; 
@@ -131,7 +213,7 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-            align-items: center; /* Centraliza tudo dentro do card */
+            align-items: center;
         }
         .card:hover { transform: translateY(-2px); }
         .card-pix { border-left: 4px solid #2563eb; }
@@ -146,9 +228,8 @@
             font-weight: 600; 
             margin-bottom: 8px; 
             color: #1f2937;
-            width: 100%; /* Garante alinhamento igual */
+            width: 100%;
         }
-        /* 👆 FIM DA CORREÇÃO */
 
         .erro-tela { background: #fef2f2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; border: 1px solid #fecaca; }
 
@@ -165,15 +246,16 @@
             .grupo { flex-wrap: wrap; }
             .dinheiro-fisico input { width: 100%; }
             .dinheiro-fisico button { width: 100%; justify-content: center; }
+            /* Ajuste especial para cabeçalho em telas médias/pequenas */
+            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .info-usuario { text-align: left; width: 100%; }
         }
         @media (max-width: 480px) {
             body { padding: 10px; }
             .painel-card { padding: 25px 20px; }
             .logo-texto { font-size: 1.6rem; }
             .logo-icone { width: 40px; height: 40px; }
-            .header { gap: 10px; }
-            .info-usuario { text-align: right; width: auto; }
-            .slogan-cabecalho { padding-left: 0; }
+            .slogan-cabecalho { text-align: center; width: 100%; }
             .linha-dupla { flex-direction: column; gap: 6px; }
             .linha-dupla input { width: 100%; }
             .resumo-cabecalho { flex-direction: column; align-items: flex-start; }
@@ -255,10 +337,13 @@
                 </div>
 
                 <div class="info-usuario">
-                    <span class="info-nome" id="mostra-nome">Carregando...</span>
-                    <span class="info-email" id="mostra-email">Carregando...</span>
+                    <span class="info-nome" id="mostra-nome">CLAUDIVINO DOS SANTOS SILVA</span>
+                    <span class="info-email" id="mostra-email">engesiste@gmail.com</span>
                 </div>
             </div>
+
+            <div id="erro-geral" class="erro-tela"></div>
+            <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE após confirmar o recebimento do valor na sua conta!</div>
 
             <div class="dinheiro-fisico">
                 <div class="grupo">
@@ -343,7 +428,7 @@
 
         function mostrarFormulario(tipo) {
             document.getElementById('tela-inicial').style.display = 'none';
-            document.getElementById('area-formularios').style.display = 'block';
+            document.getElementById('area-formularios').style.display = 'flex';
             document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
             document.getElementById(tipo).classList.add('active');
             limparAvisos();
@@ -496,8 +581,8 @@
                 if (!user) return;
                 CLIENTE_ID = user.id;
                 const {data:perfil} = await _supabase.from('estabelecimentos').select('nome').eq('usuario_id',user.id).maybeSingle();
-                document.getElementById('mostra-nome').textContent = perfil?.nome || 'Usuário';
-                document.getElementById('mostra-email').textContent = user.email;
+                document.getElementById('mostra-nome').textContent = perfil?.nome || 'CLAUDIVINO DOS SANTOS SILVA';
+                document.getElementById('mostra-email').textContent = user.email || 'engesiste@gmail.com';
                 document.getElementById('tela-acesso').style.display = 'none';
                 document.getElementById('tela-painel').style.display = 'block';
                 await carregarDadosTransacoes();
