@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PagCheck - Configurar Integrações</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif; }
     body { background:#f5f7fa; padding:20px; max-width:850px; margin:0 auto; min-height:100vh; }
@@ -28,6 +28,8 @@
     .passos { padding-left:20px; margin:0; }
     .passos li { margin:6px 0; font-size:0.9rem; color:#374151; }
     .oculto { display:none !important; }
+    .carregando { text-align:center; padding:20px; color:#4b5563; font-weight:500; }
+    .erro-acesso { background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:15px; border-radius:8px; text-align:center; margin-bottom:20px; }
   </style>
 </head>
 <body>
@@ -37,103 +39,116 @@
   <button class="btn-voltar" onclick="window.location.href='pagcheck.html'">← Voltar ao Painel</button>
 </div>
 
-<div class="aviso-seg">
+<div id="aviso-seguranca" class="aviso-seg">
   <p>🔒 <strong>Segurança total:</strong> Você NÃO precisa digitar senhas ou chaves secretas aqui. Apenas copie o link gerado e cole dentro da sua conta no sistema que você usa.</p>
 </div>
 
-<div class="bloco">
-  <label class="label">1. Selecione onde você recebe pagamentos:</label>
-  <select id="sistema" class="select" onchange="executarGerarLink()">
-    <option value="">Escolha...</option>
-    <optgroup label="🏦 BANCOS E INSTITUIÇÕES">
-      <option value="caixa">Caixa Econômica Federal</option>
-      <option value="nubank">Nubank</option>
-      <option value="bradesco">Bradesco</option>
-      <option value="itau">Itaú Unibanco</option>
-      <option value="banco-brasil">Banco do Brasil</option>
-      <option value="santander">Santander Brasil</option>
-      <option value="inter">Banco Inter</option>
-      <option value="btg">BTG Pactual</option>
-      <option value="sicoob">Sicoob</option>
-      <option value="sicredi">Sicredi</option>
-      <option value="safra">Banco Safra</option>
-      <option value="bv">Banco BV</option>
-      <option value="c6">C6 Bank</option>
-      <option value="pan">Banco PAN</option>
-      <option value="xp">Banco XP</option>
-      <option value="banrisul">Banrisul</option>
-      <option value="daycoval">Banco Daycoval</option>
-      <option value="neon">Neon Pagamentos</option>
-      <option value="nordeste">Banco do Nordeste</option>
-      <option value="amazonia">Banco da Amazônia</option>
-      <option value="citibank">Citibank</option>
-      <option value="jpmorgan">J.P. Morgan</option>
-      <option value="sofisa">Banco Sofisa</option>
-      <option value="openpix">🔹 OpenPix (Alternativa para Pix)</option>
-    </optgroup>
-    <optgroup label="💳 CARTEIRAS DIGITAIS">
-      <option value="mercadopago">Mercado Pago</option>
-      <option value="picpay">PicPay</option>
-      <option value="pagbank">PagBank</option>
-    </optgroup>
-    <optgroup label="💳 MAQUININAS / ADQUIRENTES">
-      <option value="ton">Ton</option>
-      <option value="stone">Stone</option>
-      <option value="infinitepay">InfinitePay</option>
-      <option value="sumup">SumUp</option>
-      <option value="cielo">Cielo</option>
-      <option value="rede">Rede</option>
-      <option value="getnet">Getnet</option>
-      <option value="safrapay">SafraPay</option>
-      <option value="yelly">Yelly</option>
-      <option value="c6pay">C6 Pay</option>
-      <option value="intergyn">Inter Gyn</option>
-      <option value="sipag">Sipag</option>
-      <option value="sicredi-pag">Sicredi Pagamentos</option>
-      <option value="zoop">Zoop</option>
-      <option value="acqiogranito">Acqio / Granito</option>
-      <option value="pagveloz">PagVeloz</option>
-      <option value="directapay">DirectaPay</option>
-      <option value="adyen">Adyen</option>
-    </optgroup>
-    <optgroup label="🛒 PDVs, CAIXAS E SISTEMAS">
-      <option value="pdv-mercadopago">Mercado Pago PDV</option>
-      <option value="pdv-pagbank">PagBank PDV</option>
-      <option value="tiny">Tiny ERP / PDV</option>
-      <option value="omie">Omie</option>
-      <option value="vtex">VTEX</option>
-      <option value="bling">Bling</option>
-      <option value="loja-integrada">Loja Integrada</option>
-      <option value="outro">Outro sistema com Webhook</option>
-    </optgroup>
-  </select>
+<div id="area-erro" class="erro-acesso oculto">
+  <p id="texto-erro"></p>
+  <button class="btn-voltar" onclick="window.location.href='pagcheck.html'">Voltar ao Painel</button>
 </div>
 
-<div id="aviso-openpix" class="aviso-alternativa oculto">
-  💡 <strong>Dica:</strong> Use o OpenPix quando seu banco não liberar notificações para Pessoa Física — ele funciona como intermediário e avisa o sistema automaticamente.
-</div>
-
-<div id="area-link" class="bloco oculto">
-  <label class="label">2. Seu link exclusivo:</label>
-  <div class="link-area">
-    <span id="link-exclusivo" class="link-texto"></span>
-    <button class="btn-copiar" onclick="copiarLink()">📋 Copiar</button>
+<div id="conteudo-config" class="oculto">
+  <div class="bloco">
+    <label class="label">1. Selecione onde você recebe pagamentos:</label>
+    <select id="sistema" class="select" onchange="executarGerarLink()">
+      <option value="">Escolha...</option>
+      <optgroup label="🏦 BANCOS E INSTITUIÇÕES">
+        <option value="caixa">Caixa Econômica Federal</option>
+        <option value="nubank">Nubank</option>
+        <option value="bradesco">Bradesco</option>
+        <option value="itau">Itaú Unibanco</option>
+        <option value="banco-brasil">Banco do Brasil</option>
+        <option value="santander">Santander Brasil</option>
+        <option value="inter">Banco Inter</option>
+        <option value="btg">BTG Pactual</option>
+        <option value="sicoob">Sicoob</option>
+        <option value="sicredi">Sicredi</option>
+        <option value="safra">Banco Safra</option>
+        <option value="bv">Banco BV</option>
+        <option value="c6">C6 Bank</option>
+        <option value="pan">Banco PAN</option>
+        <option value="xp">Banco XP</option>
+        <option value="banrisul">Banrisul</option>
+        <option value="daycoval">Banco Daycoval</option>
+        <option value="neon">Neon Pagamentos</option>
+        <option value="nordeste">Banco do Nordeste</option>
+        <option value="amazonia">Banco da Amazônia</option>
+        <option value="citibank">Citibank</option>
+        <option value="jpmorgan">J.P. Morgan</option>
+        <option value="sofisa">Banco Sofisa</option>
+        <option value="openpix">🔹 OpenPix (Alternativa para Pix)</option>
+      </optgroup>
+      <optgroup label="💳 CARTEIRAS DIGITAIS">
+        <option value="mercadopago">Mercado Pago</option>
+        <option value="picpay">PicPay</option>
+        <option value="pagbank">PagBank</option>
+      </optgroup>
+      <optgroup label="💳 MAQUININAS / ADQUIRENTES">
+        <option value="ton">Ton</option>
+        <option value="stone">Stone</option>
+        <option value="infinitepay">InfinitePay</option>
+        <option value="sumup">SumUp</option>
+        <option value="cielo">Cielo</option>
+        <option value="rede">Rede</option>
+        <option value="getnet">Getnet</option>
+        <option value="safrapay">SafraPay</option>
+        <option value="yelly">Yelly</option>
+        <option value="c6pay">C6 Pay</option>
+        <option value="intergyn">Inter Gyn</option>
+        <option value="sipag">Sipag</option>
+        <option value="sicredi-pag">Sicredi Pagamentos</option>
+        <option value="zoop">Zoop</option>
+        <option value="acqiogranito">Acqio / Granito</option>
+        <option value="pagveloz">PagVeloz</option>
+        <option value="directapay">DirectaPay</option>
+        <option value="adyen">Adyen</option>
+      </optgroup>
+      <optgroup label="🛒 PDVs, CAIXAS E SISTEMAS">
+        <option value="pdv-mercadopago">Mercado Pago PDV</option>
+        <option value="pdv-pagbank">PagBank PDV</option>
+        <option value="tiny">Tiny ERP / PDV</option>
+        <option value="omie">Omie</option>
+        <option value="vtex">VTEX</option>
+        <option value="bling">Bling</option>
+        <option value="loja-integrada">Loja Integrada</option>
+        <option value="outro">Outro sistema com Webhook</option>
+      </optgroup>
+    </select>
   </div>
-  <p class="dica">Único para sua conta — não compartilhe com ninguém.</p>
+
+  <div id="aviso-openpix" class="aviso-alternativa oculto">
+    💡 <strong>Dica:</strong> Use o OpenPix quando seu banco não liberar notificações para Pessoa Física — ele funciona como intermediário e avisa o sistema automaticamente.
+  </div>
+
+  <div id="area-link" class="bloco oculto">
+    <label class="label">2. Seu link exclusivo:</label>
+    <div class="link-area">
+      <span id="link-exclusivo" class="link-texto"></span>
+      <button class="btn-copiar" onclick="copiarLink()">📋 Copiar</button>
+    </div>
+    <p class="dica">Único para sua conta — não compartilhe com ninguém.</p>
+  </div>
+
+  <div id="area-instrucoes" class="bloco oculto">
+    <div class="instrucoes">
+      <h4>📝 3. Onde colar o link no seu sistema:</h4>
+      <ol id="passos-sistema" class="passos"></ol>
+    </div>
+  </div>
 </div>
 
-<div id="area-instrucoes" class="bloco oculto">
-  <div class="instrucoes">
-    <h4>📝 3. Onde colar o link no seu sistema:</h4>
-    <ol id="passos-sistema" class="passos"></ol>
-  </div>
+<div id="tela-carregando" class="carregando">
+  ⏳ Carregando suas configurações...
 </div>
 
 <script>
+// 🔐 MESMA CONFIGURAÇÃO DO PAINEL PRINCIPAL
 const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
-// Se quiser pegar automaticamente o usuário logado, troque essa linha
-// por buscar do auth, igual no painel principal
-const CLIENTE_ID = "27a5be90-e506-4314-ac44-2a8bdef83d4e";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let CLIENTE_ID = null;
 
 const guias = {
   caixa: `<li>Menu Pix → Serviços → Webhooks</li><li>Cadastrar → Cole o link → Salve</li>`,
@@ -191,6 +206,31 @@ const guias = {
   outro: `<li>Procure por: <strong>Integrações / Webhooks / Notificações / Avisos</strong></li><li>Cole o link no campo URL</li><li>Selecione eventos de pagamento</li><li>Salve</li>`
 };
 
+// 🔐 VERIFICA LOGIN AUTOMATICAMENTE AO ABRIR A PÁGINA
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const { data: { user } } = await _supabase.auth.getUser();
+    if (!user) {
+      mostrarErro('Você precisa estar logado para acessar essa página.');
+      return;
+    }
+    CLIENTE_ID = user.id;
+    document.getElementById('tela-carregando').classList.add('oculto');
+    document.getElementById('conteudo-config').classList.remove('oculto');
+  } catch (erro) {
+    console.error(erro);
+    mostrarErro('Erro ao verificar seu acesso: ' + erro.message);
+  }
+});
+
+function mostrarErro(mensagem) {
+  document.getElementById('tela-carregando').classList.add('oculto');
+  document.getElementById('aviso-seguranca').classList.add('oculto');
+  document.getElementById('conteudo-config').classList.add('oculto');
+  document.getElementById('texto-erro').textContent = mensagem;
+  document.getElementById('area-erro').classList.remove('oculto');
+}
+
 function executarGerarLink() {
   const sistema = document.getElementById('sistema').value;
   if (!sistema) {
@@ -200,7 +240,7 @@ function executarGerarLink() {
     return;
   }
 
-  // ✅ Nome da função corrigido para: receber-transacao
+  // ✅ LINK GERADO COM O ID DO USUÁRIO LOGADO
   const link = `${SUPABASE_URL}/functions/v1/receber-transacao?cliente=${CLIENTE_ID}&origem=${sistema}`;
   document.getElementById('link-exclusivo').textContent = link;
   
@@ -208,16 +248,13 @@ function executarGerarLink() {
   document.getElementById('passos-sistema').innerHTML = guias[sistema] || guias.outro;
   document.getElementById('area-instrucoes').classList.remove('oculto');
 
-  if (sistema === 'openpix') {
-    document.getElementById('aviso-openpix').classList.remove('oculto');
-  } else {
-    document.getElementById('aviso-openpix').classList.add('oculto');
-  }
+  document.getElementById('aviso-openpix').classList.toggle('oculto', sistema !== 'openpix');
 }
 
 function copiarLink() {
   navigator.clipboard.writeText(document.getElementById('link-exclusivo').textContent)
-    .then(() => alert('✅ Link copiado! Agora cole no seu sistema.'));
+    .then(() => alert('✅ Link copiado! Agora cole no seu sistema de recebimento.'))
+    .catch(() => alert('❌ Não foi possível copiar. Selecione o texto manualmente e copie.'));
 }
 </script>
 
