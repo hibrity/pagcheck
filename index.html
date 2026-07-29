@@ -61,7 +61,7 @@
             align-items: center;
         }
         .voltar { 
-            display: none; /* COMEÇA OCULTO - APARECE SOMENTE QUANDO ABRIR FORMULÁRIO */
+            display: none;
             text-align: left; 
             margin-bottom: 15px; 
             width: 100%; 
@@ -334,14 +334,12 @@
                     <p class="slogan-cabecalho">Confirmação direto do banco — sem golpes</p>
                 </div>
 
+                <!-- AGORA COMEÇA VAZIO, SÓ RECEBE OS DADOS DO USUÁRIO LOGADO -->
                 <div class="info-usuario">
-                    <span class="info-nome" id="mostra-nome">CLAUDIVINO DOS SANTOS SILVA</span>
-                    <span class="info-email" id="mostra-email">engesiste@gmail.com</span>
+                    <span class="info-nome" id="mostra-nome"></span>
+                    <span class="info-email" id="mostra-email"></span>
                 </div>
             </div>
-
-            <div id="erro-geral" class="erro-tela"></div>
-            <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE após confirmar o recebimento do valor na sua conta!</div>
 
             <div class="dinheiro-fisico">
                 <div class="grupo">
@@ -427,7 +425,7 @@
         function mostrarFormulario(tipo) {
             document.getElementById('tela-inicial').style.display = 'none';
             document.getElementById('area-formularios').style.display = 'flex';
-            document.querySelector('.voltar').style.display = 'block'; // MOSTRA O VOLTAR SOMENTE AQUI
+            document.querySelector('.voltar').style.display = 'block';
             document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
             document.getElementById(tipo).classList.add('active');
             limparAvisos();
@@ -435,7 +433,7 @@
 
         function voltarInicio() {
             document.getElementById('area-formularios').style.display = 'none';
-            document.querySelector('.voltar').style.display = 'none'; // OCULTA O VOLTAR AO VOLTAR PARA TELA INICIAL
+            document.querySelector('.voltar').style.display = 'none';
             document.getElementById('tela-inicial').style.display = 'flex';
             limparAvisos();
         }
@@ -581,8 +579,9 @@
                 if (!user) return;
                 CLIENTE_ID = user.id;
                 const {data:perfil} = await _supabase.from('estabelecimentos').select('nome').eq('usuario_id',user.id).maybeSingle();
-                document.getElementById('mostra-nome').textContent = perfil?.nome || 'CLAUDIVINO DOS SANTOS SILVA';
-                document.getElementById('mostra-email').textContent = user.email || 'engesiste@gmail.com';
+                // AGORA SÓ MOSTRA O DADO REAL, SEM VALOR FIXO DE EXEMPLO
+                document.getElementById('mostra-nome').textContent = perfil?.nome || '';
+                document.getElementById('mostra-email').textContent = user.email || '';
                 document.getElementById('tela-acesso').style.display = 'none';
                 document.getElementById('tela-painel').style.display = 'block';
                 await carregarDadosTransacoes();
