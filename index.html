@@ -5,95 +5,181 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PagCheck - Acesso e Painel</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.1/dist/umd/supabase.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: #f4f7f6; min-height: 100vh; padding: 20px; }
-        .container { max-width: 1350px; margin: 0 auto; }
-        .tela-acesso { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .painel-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
-        .logo-area { text-align: center; margin-bottom: 30px; }
-        .logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
-        .logo-icone { width: 45px; height: 45px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: #f4f7f6; min-height: 100vh; padding: 15px; display: flex; flex-direction: column; }
+        .container { max-width: 100%; margin: 0 auto; width: 100%; flex: 1; }
+        .tela-acesso { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
+        .painel-card { background: white; padding: 30px 25px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
+        .logo-area { text-align: center; margin-bottom: 25px; }
+        .logo { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .logo-icone { width: 44px; height: 44px; }
         .logo-texto { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 0; }
         .logo-texto span { color: #2563eb; }
-        .slogan { color: #64748b; font-size: 0.9rem; margin: 0; }
+        .slogan { color: #64748b; font-size: 0.9rem; margin-top: 6px; }
         .tela-inicial { display: flex; flex-direction: column; gap: 12px; align-items: center; }
-        .btn-inicial { background: #2563eb; color: white; padding: 10px 24px; border: none; border-radius: 4px; font-size: 15px; font-weight: bold; cursor: pointer; width: auto; min-width: 180px; }
+        .btn-inicial { background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 220px; transition: background 0.2s; }
         .btn-inicial:hover { background: #1d4ed8; }
         .btn-secundario { background: #e2e8f0; color: #1e293b; }
         .btn-secundario:hover { background: #cbd5e1; }
         .area-formularios { display: none; }
         .voltar { text-align: left; margin-bottom: 15px; }
-        .btn-voltar { background: none; border: none; color: #2563eb; font-size: 14px; cursor: pointer; padding: 0; width: auto; }
+        .btn-voltar { background: none; border: none; color: #2563eb; font-size: 14px; cursor: pointer; padding: 0; }
         .form-panel { display: none; }
         .form-panel.active { display: block; }
-        input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; }
-        input[readonly] { background: #f9f9f9; color: #555; cursor: not-allowed; }
-        button:not(.btn-voltar):not(.btn-inicial):not(.btn-config):not(.btn-relatorio):not(.btn-baixar) { 
-            width: auto; 
-            padding: 10px 24px; 
-            display: block; 
-            margin: 8px auto 0 auto; 
+        input { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; transition: border 0.2s; }
+        input:focus { outline: none; border-color: #2563eb; }
+        input[readonly] { background: #f9fafb; color: #4b5563; cursor: not-allowed; }
+        
+        button:not(.btn-voltar):not(.btn-inicial):not(.btn-relatorio):not(.btn-baixar):not(.btn-rodape) { 
+            padding: 12px; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 15px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-top: 8px;
         }
-        button:hover { background: #1d4ed8; }
+
         .links { text-align: center; margin-top: 15px; }
         .links a { color: #2563eb; text-decoration: none; font-size: 14px; }
-        .aviso { margin-top: 10px; padding: 12px; border-radius: 4px; display: none; font-size: 14px; font-weight: 500; word-break: break-word; }
-        .erro { background: #fde2e2; color: #b00000; border: 1px solid #fecaca; }
-        .sucesso { background: #e2f9e2; color: #006400; border: 1px solid #bbf7d0; }
-        .linha-dupla { display: flex; gap: 10px; }
-        .linha-dupla input { flex: 1; }
+        .links a:hover { text-decoration: underline; }
+        .aviso { margin-top: 12px; padding: 10px; border-radius: 6px; display: none; font-size: 14px; font-weight: 500; }
+        .erro { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .sucesso { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .linha-dupla { display: flex; gap: 8px; flex-wrap: wrap; }
+        .linha-dupla input { flex: 1; min-width: 120px; }
         .tela-painel { display: none; }
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; text-align: center; }
-        .btn-config { background: #7c3aed; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; width: auto; }
-        .usuario-logado { background: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-        .usuario-dados { text-align: left; }
-        .usuario-nome { font-weight: bold; color: #1e293b; font-size: 1rem; }
-        .usuario-email { color: #64748b; font-size: 0.9rem; }
-        .aviso-seguranca { background: #fffbeb; color: #92400e; padding: 12px; border-radius: 6px; border-left: 3px solid #f59e0b; max-width: 600px; margin: 0 auto 20px; text-align: center; }
-        .dinheiro-fisico { background: #fffbeb; border-radius: 8px; padding: 16px; max-width: 600px; margin: 0 auto 20px; }
-        .grupo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
-        .dinheiro-fisico input { flex: 1; min-width: 220px; padding: 10px; border: 1px solid #f59e0b; border-radius: 6px; font-size: 1rem; }
-        .dinheiro-fisico button { padding: 10px 18px; background: #f59e0b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; width: auto; }
-        .aviso-dinheiro { margin-top: 10px; display: none; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; background: #dcfce7; color: #166534; }
-        .aviso-dinheiro.erro { background: #fee2e2; color: #dc2626; }
-        .resumo { background: white; border-radius: 8px; padding: 20px; margin-bottom: 24px; max-width: 850px; margin: 0 auto; }
-        .resumo-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .btn-relatorio { padding: 7px 14px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; width: auto; }
-        .resumo-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-        .resumo-linha { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
-        .resumo-valor-conf { font-weight: bold; color: #166534; }
-        .resumo-valor-agen { font-weight: bold; color: #f59e0b; }
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow-y: auto; }
-        .modal-conteudo { background: white; margin: 5% auto; padding: 24px; border-radius: 10px; width: 95%; max-width: 750px; }
-        .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
-        .fechar { font-size: 28px; font-weight: bold; cursor: pointer; color: #9ca3af; }
-        .filtro-periodo { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-        .filtro-periodo label { font-weight: bold; color: #1e293b; }
-        .filtro-periodo input { width: auto; padding: 6px; margin: 4px; }
-        .btn-baixar { display: block; margin: 0 auto; padding: 10px 24px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; width: auto; }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #e5e7eb; }
+        .lado-esquerdo { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1 1 auto; min-width: 180px; }
+        .logo-cabecalho { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .slogan-cabecalho { font-size: 0.85rem; color: #6b7280; font-weight: normal; margin: 0; text-align: center; }
+        .info-usuario { display: flex; flex-direction: column; gap: 2px; text-align: right; flex: 0 0 auto; min-width: 140px; }
+        .info-nome { font-size: 0.85rem; font-weight: 500; color: #4b5563; word-break: break-word; }
+        .info-email { font-size: 0.75rem; color: #9ca3af; word-break: break-all; }
+
+        .aviso-seguranca { background: #fffbeb; color: #92400e; padding: 12px; border-radius: 6px; border-left: 4px solid #f59e0b; width: 100%; max-width: 100%; margin: 0 0 20px 0; text-align: center; font-size: 0.9rem; }
+        .dinheiro-fisico { background: white; border-radius: 8px; padding: 15px; width: 100%; max-width: 100%; margin: 0 0 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .grupo { display: flex; gap: 12px; align-items: center; flex-wrap: nowrap; }
+        .dinheiro-fisico input { flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; margin: 0; }
+        .dinheiro-fisico button { 
+            width: 110px; 
+            padding: 12px 8px; 
+            background: #f59e0b; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+            font-size: 0.95rem; 
+            white-space: nowrap; 
+            flex-shrink: 0; 
+            margin-top: 0;
+        }
+        .dinheiro-fisico button:hover { background: #d97706; }
+        .aviso-dinheiro { margin-top: 10px; display: none; padding: 10px; border-radius: 6px; font-weight: 500; text-align: center; font-size: 0.9rem; }
+        .aviso-dinheiro.erro { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .aviso-dinheiro:not(.erro) { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+        .resumo { background: white; border-radius: 8px; padding: 18px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); width: 100%; max-width: 100%; }
+        .resumo-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        .resumo-cabecalho h4 { font-size: 1.1rem; color: #1f2937; }
+        .btn-relatorio { padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; width: auto; }
+        .btn-relatorio:hover { background: #15803d; }
+        .resumo-grade { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; font-size: 0.95rem; }
+        .resumo-linha { display: flex; gap: 5px; align-items: center; white-space: nowrap; }
+        .resumo-linha span:first-child { color: #4b5563; }
+        .resumo-valor-conf { font-weight: 600; color: #166534; }
+        .resumo-valor-agen { font-weight: 500; color: #f59e0b; }
+        .resumo-total { font-weight: 700; color: #1f2937; font-size: 1rem; }
+
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; padding: 15px; }
+        .modal.aberto { display: flex; }
+        .modal-conteudo { background: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; }
+        .modal-cabecalho h3 { font-size: 1.1rem; color: #1f2937; }
+        .fechar { font-size: 1.6rem; font-weight: bold; cursor: pointer; color: #9ca3af; background: none; border: none; padding: 0; width: auto; line-height: 1; }
+        .fechar:hover { color: #4b5563; }
+        .filtro-periodo { display: flex; gap: 10px; justify-content: center; margin-bottom: 18px; flex-wrap: wrap; }
+        .filtro-periodo label { font-weight: 500; color: #374151; font-size: 0.9rem; }
+        .filtro-periodo input { width: auto; padding: 7px; margin: 0; }
+        .btn-baixar { display: block; margin: 0 auto; padding: 10px 22px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: background 0.2s; width: auto; }
+        .btn-baixar:hover { background: #1d4ed8; }
+
+        /* 👇 CORREÇÃO DOS CARDS AQUI */
         .cards { 
             display: grid; 
             gap: 18px; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            margin-top: 20px;
-            justify-items: center;
+            grid-template-columns: repeat(3, 1fr); 
+            margin-top: 20px; 
+            width: 100%; 
+            max-width: 100%;
+            align-items: stretch; /* Garante que todos tenham a mesma altura */
         }
-        @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .cards { grid-template-columns: 1fr; } }
         .card { 
-            border-radius: 10px; 
-            padding: 18px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            width: 100%;
-            max-width: 220px;
-            text-align: center;
+            background: white; 
+            border-radius: 8px; 
+            padding: 20px 15px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            text-align: center; 
+            transition: transform 0.2s; 
+            min-height: 140px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center; /* Centraliza tudo dentro do card */
         }
-        .card-pix { background: #eff6ff; border-left: 4px solid #2563eb; }
-        .card-credito { background: #faf5ff; border-left: 4px solid #7c3aed; }
-        .card-debito { background: #f0fdf4; border-left: 4px solid #16a34a; }
-        .card-titulo { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
-        .erro-tela { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; }
+        .card:hover { transform: translateY(-2px); }
+        .card-pix { border-left: 4px solid #2563eb; }
+        .card-credito { border-left: 4px solid #7c3aed; }
+        .card-debito { border-left: 4px solid #16a34a; }
+        .card-titulo { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 6px; 
+            font-size: 1.1rem; 
+            font-weight: 600; 
+            margin-bottom: 8px; 
+            color: #1f2937;
+            width: 100%; /* Garante alinhamento igual */
+        }
+        /* 👆 FIM DA CORREÇÃO */
+
+        .erro-tela { background: #fef2f2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; border: 1px solid #fecaca; }
+
+        .rodape { margin-top: 30px; padding-top: 15px; border-top: 1px solid #e5e7eb; text-align: center; }
+        .botoes-rodape { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .btn-rodape { background: none; border: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; padding: 0; width: auto; margin: 0; transition: color 0.2s; }
+        .btn-conecte { color: #2563eb; }
+        .btn-conecte:hover { color: #1d4ed8; }
+        .btn-rodape.sair { color: #dc2626; }
+        .btn-rodape.sair:hover { color: #b91c1c; }
+
+        @media (max-width: 768px) {
+            .cards { grid-template-columns: 1fr; }
+            .grupo { flex-wrap: wrap; }
+            .dinheiro-fisico input { width: 100%; }
+            .dinheiro-fisico button { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .painel-card { padding: 25px 20px; }
+            .logo-texto { font-size: 1.6rem; }
+            .logo-icone { width: 40px; height: 40px; }
+            .header { gap: 10px; }
+            .info-usuario { text-align: right; width: auto; }
+            .slogan-cabecalho { padding-left: 0; }
+            .linha-dupla { flex-direction: column; gap: 6px; }
+            .linha-dupla input { width: 100%; }
+            .resumo-cabecalho { flex-direction: column; align-items: flex-start; }
+            .btn-relatorio { width: 100%; text-align: center; }
+            .resumo-grade { gap: 8px 14px; font-size: 0.9rem; }
+        }
     </style>
 </head>
 <body>
@@ -123,7 +209,7 @@
                             <input type="email" id="login-email" placeholder="Seu e-mail" required>
                             <input type="password" id="login-senha" placeholder="Sua senha" required>
                             <div id="avisoLogin" class="aviso"></div>
-                            <button type="submit">Entrar</button>
+                            <button type="submit" class="btn-inicial">Entrar</button>
                         </form>
                         <div class="links">
                             <a href="#" onclick="recuperarSenha()">Esqueceu a senha?</a>
@@ -133,7 +219,7 @@
                         <form id="form-cadastro">
                             <input type="text" id="cad-nome" placeholder="Nome Completo / Razão Social" required>
                             <input type="text" id="cad-documento" placeholder="CPF (11) ou CNPJ (14)" maxlength="14" oninput="this.value=this.value.replace(/\D/g,'')" required>
-                            <input type="text" id="cad-cep" placeholder="Digite o CEP (apenas números)" maxlength="8" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                            <input type="text" id="cad-cep" placeholder="Digite o CEP" maxlength="8" oninput="this.value=this.value.replace(/\D/g,'')" required>
                             <input type="text" id="cad-rua" placeholder="Rua" readonly required>
                             <div class="linha-dupla">
                                 <input type="text" id="cad-numero" placeholder="Número" required>
@@ -145,66 +231,70 @@
                             </div>
                             <input type="hidden" id="cad-endereco">
                             <input type="email" id="cad-email" placeholder="Seu e-mail" required>
-                            <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6)" required minlength="6">
+                            <input type="password" id="cad-senha" placeholder="Criar senha (mínimo 6 caracteres)" required minlength="6">
                             <input type="password" id="cad-conf-senha" placeholder="Confirmar senha" required minlength="6">
                             <div id="avisoCad" class="aviso"></div>
-                            <button type="submit">Cadastrar</button>
+                            <button type="submit" class="btn-inicial">Cadastrar</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+
         <div id="tela-painel" class="tela-painel">
             <div class="header">
-                <div class="logo">
-                    <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
-                        <circle cx="50" cy="50" r="42" fill="#2563eb" stroke="#93c5fd" stroke-width="4"/>
-                        <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <h1 class="logo-texto">Pag<span>Check</span></h1>
+                <div class="lado-esquerdo">
+                    <div class="logo-cabecalho">
+                        <svg class="logo-icone" viewBox="0 0 100 100" fill="none">
+                            <circle cx="50" cy="50" r="42" fill="#2563eb" stroke="#93c5fd" stroke-width="4"/>
+                            <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <h1 class="logo-texto">Pag<span>Check</span></h1>
+                    </div>
+                    <p class="slogan-cabecalho">Confirmação direto do banco — sem golpes</p>
                 </div>
-               <button class="btn-config" onclick="window.location.href='configuracoes.html'">⚙️ Conecte</button>
-                <p class="slogan">Confirmação direto do banco — sem golpes</p>
+
+                <div class="info-usuario">
+                    <span class="info-nome" id="mostra-nome">Carregando...</span>
+                    <span class="info-email" id="mostra-email">Carregando...</span>
+                </div>
             </div>
+
             <div id="erro-geral" class="erro-tela"></div>
-            <div class="usuario-logado">
-                <div class="usuario-dados">
-                    <div class="usuario-nome" id="mostra-nome">Carregando dados...</div>
-                    <div class="usuario-email" id="mostra-email">Carregando e-mail...</div>
-                </div>
-                <button class="btn-config" onclick="sairConta()">🚪 Sair</button>
-            </div>
-            <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE após confirmar o recebimento</div>
+            <div class="aviso-seguranca">⚠️ Libere o produto SOMENTE após confirmar o recebimento do valor na sua conta!</div>
+
             <div class="dinheiro-fisico">
                 <div class="grupo">
-                    <input type="number" id="valor-dinheiro" placeholder="Valor em espécie R$" step="0.01">
+                    <input type="number" id="valor-dinheiro" placeholder="Valor em espécie R$" step="0.01" min="0">
                     <button onclick="registrarDinheiroFisico()">Adicionar</button>
                 </div>
                 <div id="aviso-dinheiro" class="aviso-dinheiro"></div>
             </div>
+
             <div class="resumo">
                 <div class="resumo-cabecalho">
                     <h4>📊 Resumo do Dia</h4>
-                    <button class="btn-relatorio" onclick="document.getElementById('modalRelatorio').style.display='block';">📄 Ver Relatório</button>
+                    <button class="btn-relatorio" onclick="abrirModalRelatorio()">📄 Ver Relatório</button>
                 </div>
                 <div class="resumo-grade">
-                    <div class="resumo-linha"><span>Pix Confirmado:</span><span id="res-pix-conf">R$ 0,00</span></div>
-                    <div class="resumo-linha"><span>Pix Agendado:</span><span id="res-pix-agen">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Pix Confirmado:</span><span class="resumo-valor-conf" id="res-pix-conf">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Pix Agendado:</span><span class="resumo-valor-agen" id="res-pix-agen">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Crédito:</span><span id="res-credito">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Débito:</span><span id="res-debito">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Dinheiro Físico:</span><span id="res-dinheiro">R$ 0,00</span></div>
-                    <div class="resumo-linha"><span>Total:</span><span id="total-geral-conf">R$ 0,00</span></div>
+                    <div class="resumo-linha resumo-total"><span>Total Geral:</span><span id="total-geral-conf">R$ 0,00</span></div>
                 </div>
             </div>
-            <div id="modalRelatorio" class="modal">
-                <div class="modal-conteudo">
+
+            <div id="modalRelatorio" class="modal" onclick="fecharModalFora(event)">
+                <div class="modal-conteudo" onclick="event.stopPropagation()">
                     <div class="modal-cabecalho">
                         <h3>📋 Relatório de Transações</h3>
-                        <span class="fechar" onclick="document.getElementById('modalRelatorio').style.display='none'">&times;</span>
+                        <button class="fechar" onclick="fecharModalRelatorio()">×</button>
                     </div>
                     <div class="filtro-periodo">
                         <div>
-                            <label>Período De:</label>
+                            <label>De:</label>
                             <input type="date" id="data-inicio">
                         </div>
                         <div>
@@ -212,24 +302,47 @@
                             <input type="date" id="data-fim">
                         </div>
                     </div>
-                    <button class="btn-baixar" onclick="gerarRelatorioCSV()">💾 Baixar em CSV</button>
+                    <button class="btn-baixar" onclick="gerarRelatorioPDF()">⬇️ Baixar em PDF</button>
                 </div>
             </div>
+
             <div class="cards">
-                <div class="card card-pix"><div class="card-titulo">⚡ Pix</div><div>Aguardando dados...</div></div>
-                <div class="card card-credito"><div class="card-titulo">💳 Crédito</div><div>Aguardando dados...</div></div>
-                <div class="card card-debito"><div class="card-titulo">💳 Débito</div><div>Aguardando dados...</div></div>                       
+                <div class="card card-pix">
+                    <div class="card-titulo">⚡ Pix</div>
+                    <div>Aguardando dados...</div>
+                </div>
+                <div class="card card-credito">
+                    <div class="card-titulo">💳 Crédito</div>
+                    <div>Aguardando dados...</div>
+                </div>
+                <div class="card card-debito">
+                    <div class="card-titulo">🏧 Débito</div>
+                    <div>Aguardando dados...</div>
+                </div>                       
+            </div>
+
+            <div class="rodape">
+                <div class="botoes-rodape">
+                    <button class="btn-rodape btn-conecte" onclick="window.location.href='configuracoes.html'">Conecte</button>
+                    <button class="btn-rodape sair" onclick="sairConta()">Sair</button>
+                </div>
             </div>
         </div>
     </div>
+
     <script>
         const SUPABASE_URL = "https://rxbojrrqjclosqozixcg.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4Ym9qcnJxamNsb3Nxb3ppeGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MjgwNzEsImV4cCI6MjEwMDMwNDA3MX0.AAsQdAkmMK43jOZiwbRnXva9vIHjxc_A11pJCYg6MG0";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { jsPDF } = window.jspdf;
 
         let usuarioLogado = null;
         let CLIENTE_ID = null;
-        let totalPix = 0, totalCredito = 0, totalDebito = 0;
+        let totalPix = 0, totalCredito = 0, totalDebito = 0, totalDinheiroFisico = 0;
+
+        function abrirModalRelatorio() { document.getElementById('modalRelatorio').classList.add('aberto'); }
+        function fecharModalRelatorio() { document.getElementById('modalRelatorio').classList.remove('aberto'); }
+        function fecharModalFora(event) { if (event.target.id === 'modalRelatorio') fecharModalRelatorio(); }
 
         function mostrarFormulario(tipo) {
             document.getElementById('tela-inicial').style.display = 'none';
@@ -252,9 +365,7 @@
             el.style.display = 'block';
         }
 
-        function limparAvisos() {
-            document.querySelectorAll('.aviso').forEach(el => el.style.display = 'none');
-        }
+        function limparAvisos() { document.querySelectorAll('.aviso, .erro-tela, .aviso-dinheiro').forEach(el => el.style.display = 'none'); }
 
         function mostrarErro(texto) {
             const aviso = document.getElementById('erro-geral');
@@ -263,12 +374,11 @@
             setTimeout(() => aviso.style.display = 'none', 5000);
         }
 
-        function formatarMoeda(n) {
-            return `R$ ${n.toFixed(2).replace('.', ',')}`;
-        }
+        function formatarMoeda(n) { return `R$ ${n.toFixed(2).replace('.', ',')}`; }
 
         function atualizarPainel() {
             document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
+            document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
             document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
             document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
             document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
@@ -288,7 +398,7 @@
                 document.getElementById('cad-estado').value = dados.uf || '';
                 document.getElementById('cad-numero').focus();
             } catch {
-                mostrarAviso('avisoCad','❌ CEP inválido ou não encontrado','erro');
+                mostrarAviso('avisoCad', '❌ CEP inválido ou não encontrado', 'erro');
                 ['cad-rua','cad-bairro','cad-cidade','cad-estado'].forEach(id=>document.getElementById(id).value='');
             }
         });
@@ -298,44 +408,34 @@
             const nome = document.getElementById('cad-nome').value.trim();
             const doc = document.getElementById('cad-documento').value.trim().replace(/\D/g,'');
             const rua = document.getElementById('cad-rua').value.trim();
-            const numero = document.getElementById('cad-numero').value.trim();
+            const num = document.getElementById('cad-numero').value.trim();
             const bairro = document.getElementById('cad-bairro').value.trim();
             const cidade = document.getElementById('cad-cidade').value.trim();
-            const estado = document.getElementById('cad-estado').value.trim();
+            const uf = document.getElementById('cad-estado').value.trim();
             const email = document.getElementById('cad-email').value.trim();
             const senha = document.getElementById('cad-senha').value;
             const conf = document.getElementById('cad-conf-senha').value;
 
-            document.getElementById('cad-endereco').value = `${rua}, ${numero} - ${bairro} - ${cidade}/${estado}`;
-            if (![11,14].includes(doc.length)) return mostrarAviso('avisoCad','❌ CPF 11 ou CNPJ 14 números','erro');
+            if (![11,14].includes(doc.length)) return mostrarAviso('avisoCad','❌ CPF com 11 dígitos ou CNPJ com 14','erro');
             if (senha !== conf) return mostrarAviso('avisoCad','❌ Senhas não coincidem','erro');
-            if (senha.length < 6) return mostrarAviso('avisoCad','❌ Senha mínima 6 caracteres','erro');
 
+            document.getElementById('cad-endereco').value = `${rua}, ${num} - ${bairro} - ${cidade}/${uf}`;
             mostrarAviso('avisoCad','⏳ Criando conta...','sucesso');
             try {
-                const authRes = await _supabase.auth.signUp({ email, password: senha });
-                if (authRes.error) throw authRes.error;
-                if (!authRes.data.user) throw new Error('Não foi possível criar o usuário');
+                const { data:auth, error:e1 } = await _supabase.auth.signUp({ email, password:senha });
+                if (e1) throw e1;
+                if (!auth.user) throw new Error('Não foi possível criar o usuário');
 
-                await _supabase.auth.setSession({
-                    access_token: authRes.data.session.access_token,
-                    refresh_token: authRes.data.session.refresh_token
+                const { error:e2 } = await _supabase.from('estabelecimentos').insert({
+                    id: auth.user.id, usuario_id: auth.user.id, nome, cpf_cnpj:doc, endereco:document.getElementById('cad-endereco').value, email
                 });
+                if (e2) throw e2;
 
-                const perfilRes = await _supabase.from('estabelecimentos').insert({
-                    usuario_id: authRes.data.user.id,
-                    nome: nome,
-                    cpf_cnpj: doc,
-                    endereco: document.getElementById('cad-endereco').value,
-                    email: email
-                });
-                if (perfilRes.error) throw perfilRes.error;
-
-                mostrarAviso('avisoCad','✅ Cadastro ok! Você já pode entrar.','sucesso');
-                setTimeout(()=>mostrarFormulario('login'),2000);
+                mostrarAviso('avisoCad','✅ Conta criada! Fazendo login...','sucesso');
+                setTimeout(()=>mostrarFormulario('login'),1500);
             } catch (e) {
-                console.error('ERRO:', e);
-                mostrarAviso('avisoCad','❌ ' + (e?.message || 'Erro ao realizar cadastro'),'erro');
+                console.error(e);
+                mostrarAviso('avisoCad','❌ '+(e.message||'Erro ao cadastrar'),'erro');
             }
         });
 
@@ -343,15 +443,15 @@
             e.preventDefault(); limparAvisos();
             const email = document.getElementById('login-email').value.trim();
             const senha = document.getElementById('login-senha').value;
-            if (!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha e-mail e senha','erro');
+            if (!email || !senha) return mostrarAviso('avisoLogin','❌ Preencha todos os campos','erro');
             mostrarAviso('avisoLogin','⏳ Entrando...','sucesso');
             try {
-                const login = await _supabase.auth.signInWithPassword({email, password: senha});
-                if (login.error) throw login.error;
-                mostrarAviso('avisoLogin','✅ Acesso liberado!','sucesso');
-                setTimeout(()=>carregarPainel(),100);
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password:senha });
+                if (error) throw error;
+                usuarioLogado = data.user;
+                await carregarDadosUsuario();
             } catch (e) {
-                mostrarAviso('avisoLogin','❌ ' + (e?.message || 'Erro ao acessar'),'erro');
+                mostrarAviso('avisoLogin','❌ '+(e.message||'Erro ao entrar'),'erro');
             }
         });
 
@@ -359,169 +459,115 @@
             const email = prompt('Digite seu e-mail cadastrado:');
             if (!email) return;
             try {
-                const r = await _supabase.auth.resetPasswordForEmail(email,{redirectTo:location.href});
-                if (r.error) throw r.error;
-                alert('✅ Link de redefinição enviado para seu e-mail!');
-            } catch (e) {
-                alert('❌ ' + e.message);
-            }
+                await _supabase.auth.resetPasswordForEmail(email, { redirectTo: location.href });
+                alert('✅ Link enviado ao seu e-mail!');
+            } catch (e) { alert('❌ '+e.message); }
         }
 
         async function registrarDinheiroFisico() {
             const input = document.getElementById('valor-dinheiro');
             const valor = parseFloat(input.value);
             const aviso = document.getElementById('aviso-dinheiro');
-            
             if (!valor || valor <= 0) {
                 aviso.className = 'aviso-dinheiro erro';
-                aviso.style.display = 'block';
                 aviso.textContent = '❌ Digite um valor válido';
+                aviso.style.display = 'block';
                 return;
             }
-
             try {
                 await _supabase.from('transacoes_gerais').insert({
-                    cliente_id: CLIENTE_ID,
-                    tipo: 'DINHEIRO',
-                    valor: valor,
-                    status: 'RECEBIDO',
-                    data_transacao: new Date().toISOString()
+                    cliente_id: CLIENTE_ID, tipo:'DINHEIRO', valor, status:'RECEBIDO', data_transacao: new Date().toISOString()
                 });
-
                 aviso.className = 'aviso-dinheiro';
+                aviso.textContent = `✅ ${formatarMoeda(valor)} adicionado!`;
                 aviso.style.display = 'block';
-                aviso.textContent = `✅ ${formatarMoeda(valor)} adicionado e salvo!`;
                 input.value = '';
-                setTimeout(() => aviso.style.display = 'none', 3000);
-                
                 await carregarDadosTransacoes();
-
+                setTimeout(()=>aviso.style.display='none',3000);
             } catch (e) {
                 aviso.className = 'aviso-dinheiro erro';
+                aviso.textContent = '❌ Erro: '+e.message;
                 aviso.style.display = 'block';
-                aviso.textContent = '❌ Erro ao salvar: ' + e.message;
             }
         }
 
-        async function sairConta() {
+        async function sairConta() { await _supabase.auth.signOut(); location.reload(); }
+
+        async function carregarDadosUsuario(){
             try {
-                await _supabase.auth.signOut();
-                document.getElementById('tela-painel').style.display = 'none';
-                document.getElementById('tela-acesso').style.display = 'flex';
-            } catch (e) {
-                mostrarErro("Não foi possível sair: " + e.message);
-            }
+                const { data:{user} } = await _supabase.auth.getUser();
+                if (!user) return;
+                CLIENTE_ID = user.id;
+                const {data:perfil} = await _supabase.from('estabelecimentos').select('nome').eq('usuario_id',user.id).maybeSingle();
+                document.getElementById('mostra-nome').textContent = perfil?.nome || 'Usuário';
+                document.getElementById('mostra-email').textContent = user.email;
+                document.getElementById('tela-acesso').style.display = 'none';
+                document.getElementById('tela-painel').style.display = 'block';
+                await carregarDadosTransacoes();
+            } catch (e) { mostrarErro(e.message); }
         }
 
         async function carregarDadosTransacoes() {
             if (!CLIENTE_ID) return;
             try {
-                const { data, error } = await _supabase
-                    .from('transacoes_gerais')
-                    .select('tipo, valor, status, data_transacao')
-                    .eq('cliente_id', CLIENTE_ID);
-                if (error) throw error;
+                const {data} = await _supabase.from('transacoes_gerais').select('tipo,valor,status').eq('cliente_id',CLIENTE_ID);
                 totalPix = totalCredito = totalDebito = totalDinheiroFisico = 0;
-                data.forEach(t => {
-                    const valor = parseFloat(t.valor) || 0;
-                    if (t.tipo === 'PIX' && t.status === 'RECEBIDO') totalPix += valor;
-                    if (t.tipo === 'CREDITO') totalCredito += valor;
-                    if (t.tipo === 'DEBITO') totalDebito += valor;
-                    if (t.tipo === 'DINHEIRO' && t.status === 'RECEBIDO') totalDinheiroFisico += valor;
+                (data||[]).forEach(t=>{
+                    const v = parseFloat(t.valor)||0;
+                    if (t.tipo==='PIX' && t.status==='RECEBIDO') totalPix +=v;
+                    else if (t.tipo==='CREDITO') totalCredito +=v;
+                    else if (t.tipo==='DEBITO') totalDebito +=v;
+                    else if (t.tipo==='DINHEIRO') totalDinheiroFisico +=v;
                 });
                 atualizarPainel();
-            } catch (e) {
-                console.error("Erro ao buscar transações:", e);
-            }
+            } catch (e) { console.error(e); }
         }
 
-        function ativarTempoReal() {
-            if (!CLIENTE_ID) return;
-            _supabase.channel('pagamentos')
-                .on('postgres_changes', { event: '*', table: 'transacoes_gerais', filter: `cliente_id=eq.${CLIENTE_ID}` }, carregarDadosTransacoes)
-                .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') console.log("🔔 Atualizações em tempo real ativadas!");
-                    if (status === 'CHANNEL_ERROR') mostrarErro("Não foi possível conectar ao modo tempo real");
-                });
-        }
-
-        async function gerarRelatorioCSV() {
-            if (!CLIENTE_ID) return alert('❌ Você precisa estar logado!');
-
-            const dataInicio = document.getElementById('data-inicio').value;
-            const dataFim = document.getElementById('data-fim').value;
-
-            if (!dataInicio || !dataFim) return alert('❌ Selecione o período completo!');
-
+        async function gerarRelatorioPDF() {
+            const ini = document.getElementById('data-inicio').value;
+            const fim = document.getElementById('data-fim').value;
+            if (!ini || !fim) return alert('Informe o período!');
             try {
-                const inicio = new Date(dataInicio);
-                const fim = new Date(dataFim + 'T23:59:59');
+                const {data} = await _supabase.from('transacoes_gerais').select('tipo,valor,status,data_transacao').eq('cliente_id',CLIENTE_ID).gte('data_transacao',ini).lte('data_transacao',fim+'T23:59:59').order('data_transacao',{asc:false});
+                
+                const doc = new jsPDF();
+                doc.setFontSize(18);
+                doc.setTextColor(37, 99, 235);
+                doc.text('PagCheck - Relatório de Transações', 105, 20, { align: 'center' });
+                doc.setFontSize(12);
+                doc.setTextColor(51, 51, 51);
+                doc.text(`Período: ${ini.replace(/-/g, '/')} até ${fim.replace(/-/g, '/')}`, 105, 30, { align: 'center' });
+                doc.text(`Emitido por: ${document.getElementById('mostra-nome').textContent}`, 105, 38, { align: 'center' });
 
-                const { data, error } = await _supabase
-                    .from('transacoes_gerais')
-                    .select('tipo, valor, status, data_transacao')
-                    .eq('cliente_id', CLIENTE_ID)
-                    .gte('data_transacao', inicio.toISOString())
-                    .lte('data_transacao', fim.toISOString())
-                    .order('data_transacao', { ascending: false });
+                const linhas = (data||[]).map(t => [
+                    new Date(t.data_transacao).toLocaleString('pt-BR'),
+                    t.tipo,
+                    formatarMoeda(t.valor),
+                    t.status
+                ]);
 
-                if (error) throw error;
-                if (!data.length) return alert('ℹ️ Nenhuma transação encontrada nesse período!');
-
-                let csv = "Data;Tipo;Valor;Status\n";
-                data.forEach(t => {
-                    const dataFormatada = new Date(t.data_transacao).toLocaleString('pt-BR');
-                    csv += `${dataFormatada};${t.tipo};R$ ${parseFloat(t.valor).toFixed(2).replace('.', ',')};${t.status}\n`;
+                doc.autoTable({
+                    head: [['Data', 'Tipo', 'Valor', 'Status']],
+                    body: linhas,
+                    startY: 48,
+                    theme: 'grid',
+                    headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+                    styles: { fontSize: 10 }
                 });
 
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `relatorio-pagcheck-${dataInicio.replaceAll('-','-')}-a-${dataFim.replaceAll('-','-')}.csv`;
-                a.click();
-                URL.revokeObjectURL(url);
+                const totalGeral = (data||[]).reduce((s,t) => s + parseFloat(t.valor||0), 0);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Total Geral: ${formatarMoeda(totalGeral)}`, 14, doc.lastAutoTable.finalY + 15);
 
-            } catch (erro) {
-                alert('❌ Erro ao gerar relatório: ' + erro.message);
-            }
-        }
-
-        async function carregarPainel() {
-            try {
-                const { data: { user }, error: authErro } = await _supabase.auth.getUser();
-                if (authErro || !user) {
-                    mostrarErro("Faça login para acessar!");
-                    return;
-                }
-
-                usuarioLogado = user;
-                CLIENTE_ID = user.id;
-
-                document.getElementById('tela-acesso').style.display = 'none';
-                document.getElementById('tela-painel').style.display = 'block';
-                document.getElementById('mostra-email').textContent = user.email;
-
-                const { data: perfil, error: perfilErro } = await _supabase
-                    .from('estabelecimentos')
-                    .select('nome')
-                    .eq('usuario_id', CLIENTE_ID)
-                    .maybeSingle();
-
-                if (perfilErro) throw perfilErro;
-                document.getElementById('mostra-nome').textContent = perfil ? perfil.nome : "Estabelecimento não cadastrado";
-
-                await carregarDadosTransacoes();
-                ativarTempoReal();
-            } catch (e) {
-                console.error("❌ Erro geral:", e);
-                mostrarErro("Falha ao carregar: " + e.message);
-            }
+                doc.save(`relatorio-${ini}-ate-${fim}.pdf`);
+                fecharModalRelatorio();
+            } catch (e) { alert('Erro ao gerar PDF: '+e.message); }
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (user) carregarPainel();
+            const {data:{user}} = await _supabase.auth.getUser();
+            if (user) { usuarioLogado=user; await carregarDadosUsuario(); }
         });
     </script>
 </body>
