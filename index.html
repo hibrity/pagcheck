@@ -123,11 +123,11 @@
         .lado-esquerdo { 
             display: flex; 
             flex-direction: column; 
-            align-items: center; /* CENTRALIZA LOGO E SLOGAN */
+            align-items: center;
             gap: 4px; 
             flex: 1 1 auto; 
             min-width: 160px; 
-            text-align: center; /* CENTRALIZA O TEXTO */
+            text-align: center;
         }
         .logo-cabecalho { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
         .slogan-cabecalho { font-size: 0.85rem; color: #6b7280; font-weight: normal; margin: 0; text-align: center; }
@@ -339,7 +339,7 @@
                     <span class="info-email" id="mostra-email"></span>
                 </div>
             </div>
-           
+
             <div class="dinheiro-fisico">
                 <div class="grupo">
                     <input type="number" id="valor-dinheiro" placeholder="Valor em espécie R$" step="0.01" min="0">
@@ -416,6 +416,7 @@
         let usuarioLogado = null;
         let CLIENTE_ID = null;
         let totalPix = 0, totalCredito = 0, totalDebito = 0, totalDinheiroFisico = 0;
+        let inscricaoTempoReal = null; // CONTROLA A CONEXÃO EM TEMPO REAL
 
         function abrirModalRelatorio() { document.getElementById('modalRelatorio').classList.add('aberto'); }
         function fecharModalRelatorio() { document.getElementById('modalRelatorio').classList.remove('aberto'); }
@@ -462,6 +463,30 @@
             document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
             document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
             document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
+        }
+
+        // 🔄 FUNÇÃO QUE ESCUTA ALTERAÇÕES EM TEMPO REAL
+        function iniciarTempoReal() {
+            if (!CLIENTE_ID) return;
+            // SE JÁ TIVER UMA CONEXÃO, FECHA ANTES DE CRIAR NOVA
+            if (inscricaoTempoReal) inscricaoTempoReal.unsubscribe();
+
+            inscricaoTempoReal = _supabase
+                .channel('transacoes_mudancas')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*', // ESCUTA INSERIR, ALTERAR E EXCLUIR
+                        schema: 'public',
+                        table: 'transacoes_gerais',
+                        filter: `cliente_id=eq.${CLIENTE_ID}` // SÓ OS DADOS DESSE USUÁRIO
+                    },
+                    () => {
+                        // QUALQUER MUDANÇA → RECARREGA E ATUALIZA TUDO NA TELA
+                        carregarDadosTransacoes();
+                    }
+                )
+                .subscribe();
         }
 
         document.getElementById('cad-cep').addEventListener('blur', async () => {
@@ -561,7 +586,7 @@
                 aviso.textContent = `✅ ${formatarMoeda(valor)} adicionado!`;
                 aviso.style.display = 'block';
                 input.value = '';
-                await carregarDadosTransacoes();
+                // NÃO PRECISA MAIS CHAMAR MANUALMENTE → O TEMPO REAL FAZ SOZINHO
                 setTimeout(()=>aviso.style.display='none',3000);
             } catch (e) {
                 aviso.className = 'aviso-dinheiro erro';
@@ -570,7 +595,12 @@
             }
         }
 
-        async function sairConta() { await _supabase.auth.signOut(); location.reload(); }
+        async function sairConta() {
+            // FECHA A CONEXÃO DE TEMPO REAL AO SAIR
+            if (inscricaoTempoReal) inscricaoTempoReal.unsubscribe();
+            await _supabase.auth.signOut();
+            location.reload();
+        }
 
         async function carregarDadosUsuario(){
             try {
@@ -583,6 +613,8 @@
                 document.getElementById('tela-acesso').style.display = 'none';
                 document.getElementById('tela-painel').style.display = 'block';
                 await carregarDadosTransacoes();
+                // ✅ INICIA O TEMPO REAL DEPOIS QUE CARREGA OS DADOS
+                iniciarTempoReal();
             } catch (e) { mostrarErro(e.message); }
         }
 
