@@ -416,7 +416,7 @@
         let usuarioLogado = null;
         let CLIENTE_ID = null;
         let totalPix = 0, totalCredito = 0, totalDebito = 0, totalDinheiroFisico = 0;
-        let inscricaoTempoReal = null; // CONTROLA A CONEXÃO EM TEMPO REAL
+        let inscricaoTempoReal = null;
 
         function abrirModalRelatorio() { document.getElementById('modalRelatorio').classList.add('aberto'); }
         function fecharModalRelatorio() { document.getElementById('modalRelatorio').classList.remove('aberto'); }
@@ -465,10 +465,9 @@
             document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
         }
 
-        // 🔄 FUNÇÃO QUE ESCUTA ALTERAÇÕES EM TEMPO REAL
+        // 🔄 FUNÇÃO AJUSTADA — mantém tudo igual, só garante atualizar cards e resumo
         function iniciarTempoReal() {
             if (!CLIENTE_ID) return;
-            // SE JÁ TIVER UMA CONEXÃO, FECHA ANTES DE CRIAR NOVA
             if (inscricaoTempoReal) inscricaoTempoReal.unsubscribe();
 
             inscricaoTempoReal = _supabase
@@ -476,14 +475,14 @@
                 .on(
                     'postgres_changes',
                     {
-                        event: '*', // ESCUTA INSERIR, ALTERAR E EXCLUIR
+                        event: '*',
                         schema: 'public',
                         table: 'transacoes_gerais',
-                        filter: `cliente_id=eq.${CLIENTE_ID}` // SÓ OS DADOS DESSE USUÁRIO
+                        filter: `cliente_id=eq.${CLIENTE_ID}`
                     },
-                    () => {
-                        // QUALQUER MUDANÇA → RECARREGA E ATUALIZA TUDO NA TELA
-                        carregarDadosTransacoes();
+                    async () => {
+                        await carregarDadosTransacoes();
+                        atualizarPainel();
                     }
                 )
                 .subscribe();
@@ -586,7 +585,6 @@
                 aviso.textContent = `✅ ${formatarMoeda(valor)} adicionado!`;
                 aviso.style.display = 'block';
                 input.value = '';
-                // NÃO PRECISA MAIS CHAMAR MANUALMENTE → O TEMPO REAL FAZ SOZINHO
                 setTimeout(()=>aviso.style.display='none',3000);
             } catch (e) {
                 aviso.className = 'aviso-dinheiro erro';
@@ -596,7 +594,6 @@
         }
 
         async function sairConta() {
-            // FECHA A CONEXÃO DE TEMPO REAL AO SAIR
             if (inscricaoTempoReal) inscricaoTempoReal.unsubscribe();
             await _supabase.auth.signOut();
             location.reload();
@@ -613,7 +610,6 @@
                 document.getElementById('tela-acesso').style.display = 'none';
                 document.getElementById('tela-painel').style.display = 'block';
                 await carregarDadosTransacoes();
-                // ✅ INICIA O TEMPO REAL DEPOIS QUE CARREGA OS DADOS
                 iniciarTempoReal();
             } catch (e) { mostrarErro(e.message); }
         }
