@@ -456,6 +456,7 @@
 
         function formatarMoeda(n) { return `R$ ${n.toFixed(2).replace('.', ',')}`; }
 
+        // ✅ Atualiza resumo e chama atualização dos cards
         function atualizarPainel() {
             document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
             document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
@@ -463,9 +464,17 @@
             document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
             document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
             document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
+            atualizarCards();
         }
 
-        // 🔄 FUNÇÃO AJUSTADA — mantém tudo igual, só garante atualizar cards e resumo
+        // ✅ Atualiza os cards com os valores somados
+        function atualizarCards() {
+            document.querySelector('.card-pix div:nth-child(2)').textContent = formatarMoeda(totalPix);
+            document.querySelector('.card-credito div:nth-child(2)').textContent = formatarMoeda(totalCredito);
+            document.querySelector('.card-debito div:nth-child(2)').textContent = formatarMoeda(totalDebito);
+        }
+
+        // ✅ Sistema de tempo real configurado
         function iniciarTempoReal() {
             if (!CLIENTE_ID) return;
             if (inscricaoTempoReal) inscricaoTempoReal.unsubscribe();
@@ -482,7 +491,6 @@
                     },
                     async () => {
                         await carregarDadosTransacoes();
-                        atualizarPainel();
                     }
                 )
                 .subscribe();
@@ -614,6 +622,7 @@
             } catch (e) { mostrarErro(e.message); }
         }
 
+        // ✅ Carrega dados do Supabase e soma corretamente
         async function carregarDadosTransacoes() {
             if (!CLIENTE_ID) return;
             try {
