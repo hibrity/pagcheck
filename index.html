@@ -177,7 +177,7 @@
         .resumo-linha { display: flex; gap: 5px; align-items: center; white-space: nowrap; }
         .resumo-linha span:first-child { color: #4b5563; }
         .resumo-valor-conf { font-weight: 600; color: #166534; }
-        .resumo-valor-agen { display: none !important; }
+        .resumo-valor-agen { display: none !important; } /* NUNCA APARECE */
         .resumo-total { font-weight: 700; color: #1f2937; font-size: 1rem; }
 
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; padding: 15px; }
@@ -369,6 +369,7 @@
                 </div>
                 <div class="resumo-grade">
                     <div class="resumo-linha"><span>Pix Confirmado:</span><span class="resumo-valor-conf" id="res-pix-conf">R$ 0,00</span></div>
+                    <!-- PIX AGENDADO REMOVIDO VISUALMENTE -->
                     <div class="resumo-linha" style="display:none;"><span>Pix Agendado:</span><span class="resumo-valor-agen" id="res-pix-agen">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Crédito:</span><span id="res-credito">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Débito:</span><span id="res-debito">R$ 0,00</span></div>
@@ -432,7 +433,8 @@
         let totalPix = 0, totalCredito = 0, totalDebito = 0, totalDinheiroFisico = 0;
         let inscricaoTempoReal = null;
         let temporizadorCards = null;
-        const idsTransacoesAvisadas = new Set();
+        // CONTROLE: JÁ AVISADOS = NÃO REPETE
+        let idsTransacoesAvisadas = new Set();
 
         function tocarAlerta() {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -454,7 +456,7 @@
             modal.innerHTML = `
                 <div style="background:white;padding:25px;border-radius:10px;max-width:420px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);border-top:5px solid #f59e0b;">
                     <h3 style="color:#92400e;margin-bottom:15px;font-size:1.2rem;">⚠️ ATENÇÃO - CUIDADO!</h3>
-                    <p style="font-size:1rem;color:#374151;line-height:1.5;"><strong>Este valor foi AGENDADO</strong> e ainda não caiu na conta!</p>
+                    <p style="font-size:1rem;color:#374151;line-height:1.5;">Este valor foi <strong>AGENDADO</strong> e ainda não caiu na conta!</p>
                     <p style="font-size:1.3rem;font-weight:700;color:#92400e;margin:15px 0;">Valor: ${formatarMoeda(valor)}</p>
                     <button onclick="this.parentElement.parentElement.remove()" style="width:100%;padding:12px;background:#f59e0b;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;">Entendi</button>
                 </div>
@@ -515,10 +517,13 @@
 
             if (dadosUltimaTransacao) {
                 const valor = parseFloat(dadosUltimaTransacao.valor) || 0;
-                tocarAlerta();
+                // SÓ TOCA ALERTA SE NÃO FOR AGENDADO
+                if (!(dadosUltimaTransacao.tipo === 'PIX' && dadosUltimaTransacao.status === 'AGENDADO')) {
+                    tocarAlerta();
+                }
 
                 let cardEl;
-                if (dadosUltimaTransacao.tipo === 'PIX' && dadosUltimaTransacao.status === 'RECEBIDO') {
+                if (dadosUltimaTransacao.tipo === 'PIX') {
                     cardEl = document.getElementById('card-pix-valor');
                     cardEl.textContent = formatarMoeda(valor);
                 } else if (dadosUltimaTransacao.tipo === 'CREDITO') {
@@ -540,7 +545,6 @@
             }
         }
 
-        // ✅ FUNÇÃO ALTERADA - SOMENTE ESSA PARTE
         function iniciarTempoReal() {
             if (!CLIENTE_ID) return;
             if (inscricaoTempoReal) inscricaoTempoReal.unsubscribe();
@@ -560,16 +564,14 @@
                         atualizarPainel(mudanca.new);
 
                         const t = mudanca.new;
-                        const idSeguro = t.id || `tmp_${Date.now()}`;
-                        const ePix = String(t.tipo).toUpperCase().trim() === 'PIX';
-                        const eAgendado = String(t.status).toUpperCase().trim() === 'AGENDADO';
+                        const idTransacao = t.id;
+                        const ePixAgendado = String(t.tipo).toUpperCase().trim() === 'PIX' && String(t.status).toUpperCase().trim() === 'AGENDADO';
 
-                        if (ePix && eAgendado && !idsTransacoesAvisadas.has(idSeguro)) {
-                            idsTransacoesAvisadas.add(idSeguro);
+                        // ✅ REGRA PRINCIPAL: SÓ AVISA UMA VEZ POR TRANSAÇÃO
+                        if (ePixAgendado && !idsTransacoesAvisadas.has(idTransacao)) {
+                            idsTransacoesAvisadas.add(idTransacao);
                             tocarAlerta();
-                            setTimeout(() => {
-                                mostrarModalAvisoAgendado(parseFloat(t.valor) || 0);
-                            }, 80);
+                            mostrarModalAvisoAgendado(parseFloat(t.valor) || 0);
                         }
                     }
                 )
@@ -711,8 +713,8 @@
 
                 (data||[]).forEach(t=>{
                     const v = parseFloat(t.valor)||0;
+                    // ✅ NÃO SOMA NADA DE AGENDADO EM LUGAR NENHUM
                     if (t.tipo==='PIX' && t.status==='RECEBIDO') totalPix +=v;
-                    else if (t.tipo==='PIX' && t.status==='AGENDADO' && t.id) idsTransacoesAvisadas.add(t.id);
                     else if (t.tipo==='CREDITO') totalCredito +=v;
                     else if (t.tipo==='DEBITO') totalDebito +=v;
                     else if (t.tipo==='DINHEIRO') totalDinheiroFisico +=v;
@@ -723,7 +725,6 @@
                 document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
                 document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
                 document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
-
             } catch (e) { console.error(e); }
         }
 
@@ -759,7 +760,7 @@
                     styles: { fontSize: 10 }
                 });
 
-                const totalGeral = (data||[]).reduce((s,t) => s + parseFloat(t.valor||0), 0);
+                const totalGeral = (data||[]).filter(t => t.status !== 'AGENDADO').reduce((s,t) => s + parseFloat(t.valor||0), 0);
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
                 doc.text(`Total Geral: ${formatarMoeda(totalGeral)}`, 14, doc.lastAutoTable.finalY + 15);
