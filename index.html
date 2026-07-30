@@ -177,7 +177,7 @@
         .resumo-linha { display: flex; gap: 5px; align-items: center; white-space: nowrap; }
         .resumo-linha span:first-child { color: #4b5563; }
         .resumo-valor-conf { font-weight: 600; color: #166534; }
-        .resumo-valor-agen { display: none !important; } /* OCULTO TOTAL */
+        .resumo-valor-agen { display: none !important; }
         .resumo-total { font-weight: 700; color: #1f2937; font-size: 1rem; }
 
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; padding: 15px; }
@@ -540,6 +540,7 @@
             }
         }
 
+        // ✅ FUNÇÃO ALTERADA - SOMENTE ESSA PARTE
         function iniciarTempoReal() {
             if (!CLIENTE_ID) return;
             if (inscricaoTempoReal) inscricaoTempoReal.unsubscribe();
@@ -558,7 +559,6 @@
                         await carregarDadosTransacoes();
                         atualizarPainel(mudanca.new);
 
-                        // ✅ AJUSTE APLICADO: garante ID e validação sem falhas
                         const t = mudanca.new;
                         const idSeguro = t.id || `tmp_${Date.now()}`;
                         const ePix = String(t.tipo).toUpperCase().trim() === 'PIX';
@@ -567,7 +567,9 @@
                         if (ePix && eAgendado && !idsTransacoesAvisadas.has(idSeguro)) {
                             idsTransacoesAvisadas.add(idSeguro);
                             tocarAlerta();
-                            mostrarModalAvisoAgendado(parseFloat(t.valor) || 0);
+                            setTimeout(() => {
+                                mostrarModalAvisoAgendado(parseFloat(t.valor) || 0);
+                            }, 80);
                         }
                     }
                 )
