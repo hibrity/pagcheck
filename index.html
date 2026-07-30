@@ -208,7 +208,7 @@
             padding: 20px 15px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
             text-align: center; 
-            transition: transform 0.2s; 
+            transition: all 0.3s ease; 
             min-height: 140px; 
             display: flex; 
             flex-direction: column; 
@@ -219,6 +219,24 @@
         .card-pix { border-left: 4px solid #2563eb; }
         .card-credito { border-left: 4px solid #7c3aed; }
         .card-debito { border-left: 4px solid #16a34a; }
+        .card.destaque-novo {
+            transform: scale(1.03);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+            background-color: #eff6ff;
+        }
+        .card.destaque-novo.card-credito {
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.25);
+            background-color: #faf5ff;
+        }
+        .card.destaque-novo.card-debito {
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.25);
+            background-color: #f0fdf4;
+        }
+        /* Alerta para Pix Agendado */
+        .fundo-alerta-agendado {
+            background-color: #fffbeb !important;
+            transition: background-color 0.5s ease;
+        }
         .card-titulo { 
             display: flex; 
             align-items: center; 
@@ -420,6 +438,21 @@
         let inscricaoTempoReal = null;
         let temporizadorCards = null;
 
+        // Alerta sonoro
+        function tocarAlerta() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const tom = audioCtx.createOscillator();
+            const vol = audioCtx.createGain();
+            tom.connect(vol);
+            vol.connect(audioCtx.destination);
+            tom.frequency.value = 880;
+            tom.type = 'sine';
+            vol.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+            tom.start(audioCtx.currentTime);
+            tom.stop(audioCtx.currentTime + 0.4);
+        }
+
         function abrirModalRelatorio() { document.getElementById('modalRelatorio').classList.add('aberto'); }
         function fecharModalRelatorio() { document.getElementById('modalRelatorio').classList.remove('aberto'); }
         function fecharModalFora(event) { if (event.target.id === 'modalRelatorio') fecharModalRelatorio(); }
@@ -464,9 +497,7 @@
             document.getElementById('card-debito-valor').textContent = "Aguardando dados...";
         }
 
-        // Atualiza resumo acumulado e mostra APENAS o valor da última transação nos cards
         function atualizarPainel(dadosUltimaTransacao = null) {
-            // Resumo continua somando tudo normalmente
             document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
             document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
             document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
@@ -474,15 +505,26 @@
             document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
             document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
 
-            // Cards mostram SÓ o valor da transação que chegou agora
             if (dadosUltimaTransacao) {
                 const valor = parseFloat(dadosUltimaTransacao.valor) || 0;
+                tocarAlerta();
+
+                let cardEl;
                 if (dadosUltimaTransacao.tipo === 'PIX') {
-                    document.getElementById('card-pix-valor').textContent = formatarMoeda(valor);
+                    cardEl = document.getElementById('card-pix-valor');
+                    cardEl.textContent = formatarMoeda(valor);
                 } else if (dadosUltimaTransacao.tipo === 'CREDITO') {
-                    document.getElementById('card-credito-valor').textContent = formatarMoeda(valor);
+                    cardEl = document.getElementById('card-credito-valor');
+                    cardEl.textContent = formatarMoeda(valor);
                 } else if (dadosUltimaTransacao.tipo === 'DEBITO') {
-                    document.getElementById('card-debito-valor').textContent = formatarMoeda(valor);
+                    cardEl = document.getElementById('card-debito-valor');
+                    cardEl.textContent = formatarMoeda(valor);
+                }
+
+                if (cardEl) {
+                    const elementoCard = cardEl.closest('.card');
+                    elementoCard.classList.add('destaque-novo');
+                    setTimeout(() => elementoCard.classList.remove('destaque-novo'), 3000);
                 }
 
                 clearTimeout(temporizadorCards);
@@ -499,14 +541,20 @@
                 .on(
                     'postgres_changes',
                     {
-                        event: 'INSERT', // Só pega transações NOVAS
+                        event: 'INSERT',
                         schema: 'public',
                         table: 'transacoes_gerais',
                         filter: `cliente_id=eq.${CLIENTE_ID}`
                     },
                     async (mudanca) => {
                         await carregarDadosTransacoes();
-                        atualizarPainel(mudanca.new); // Envia só a transação nova para os cards
+                        atualizarPainel(mudanca.new);
+                        if (mudanca.new.tipo === 'PIX' && mudanca.new.status === 'AGENDADO') {
+                            tocarAlerta();
+                            document.body.classList.add('fundo-alerta-agendado');
+                            alert(`⚠️ Novo Pix Agendado: ${formatarMoeda(mudanca.new.valor)}`);
+                            setTimeout(() => document.body.classList.remove('fundo-alerta-agendado'), 5000);
+                        }
                     }
                 )
                 .subscribe();
@@ -644,20 +692,32 @@
             try {
                 const {data} = await _supabase.from('transacoes_gerais').select('tipo,valor,status').eq('cliente_id',CLIENTE_ID);
                 totalPix = totalCredito = totalDebito = totalDinheiroFisico = 0;
+                let temAgendado = false;
+                let valorAgendado = 0;
                 (data||[]).forEach(t=>{
                     const v = parseFloat(t.valor)||0;
                     if (t.tipo==='PIX' && t.status==='RECEBIDO') totalPix +=v;
+                    else if (t.tipo==='PIX' && t.status==='AGENDADO') {
+                        temAgendado = true;
+                        valorAgendado +=v;
+                    }
                     else if (t.tipo==='CREDITO') totalCredito +=v;
                     else if (t.tipo==='DEBITO') totalDebito +=v;
                     else if (t.tipo==='DINHEIRO') totalDinheiroFisico +=v;
                 });
-                // Apenas atualiza o resumo, mantém cards em "Aguardando dados..."
                 document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
-                document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
+                document.getElementById('res-pix-agen').textContent = formatarMoeda(valorAgendado);
                 document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
                 document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
                 document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
                 document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
+
+                if (temAgendado) {
+                    tocarAlerta();
+                    document.body.classList.add('fundo-alerta-agendado');
+                    alert(`⚠️ Há Pix Agendado: ${formatarMoeda(valorAgendado)}`);
+                    setTimeout(() => document.body.classList.remove('fundo-alerta-agendado'), 5000);
+                }
             } catch (e) { console.error(e); }
         }
 
