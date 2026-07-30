@@ -432,6 +432,7 @@
         let totalPix = 0, totalCredito = 0, totalDebito = 0, totalDinheiroFisico = 0;
         let inscricaoTempoReal = null;
         let temporizadorCards = null;
+        const idsTransacoesAvisadas = new Set(); // Controla quais já foram avisadas
 
         function tocarAlerta() {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -556,7 +557,9 @@
                     async (mudanca) => {
                         await carregarDadosTransacoes();
                         atualizarPainel(mudanca.new);
-                        if (mudanca.new.tipo === 'PIX' && mudanca.new.status === 'AGENDADO') {
+                        // Avisa apenas se for Pix Agendado e ainda não foi avisado
+                        if (mudanca.new.tipo === 'PIX' && mudanca.new.status === 'AGENDADO' && mudanca.new.id && !idsTransacoesAvisadas.has(mudanca.new.id)) {
+                            idsTransacoesAvisadas.add(mudanca.new.id);
                             tocarAlerta();
                             mostrarModalAvisoAgendado(parseFloat(mudanca.new.valor)||0);
                         }
@@ -695,7 +698,7 @@
         async function carregarDadosTransacoes() {
             if (!CLIENTE_ID) return;
             try {
-                const {data} = await _supabase.from('transacoes_gerais').select('tipo,valor,status').eq('cliente_id',CLIENTE_ID);
+                const {data} = await _supabase.from('transacoes_gerais').select('id,tipo,valor,status').eq('cliente_id',CLIENTE_ID);
                 totalPix = totalCredito = totalDebito = totalDinheiroFisico = 0;
                 let temAgendado = false;
                 let valorAgendado = 0;
@@ -705,6 +708,8 @@
                     else if (t.tipo==='PIX' && t.status==='AGENDADO') {
                         temAgendado = true;
                         valorAgendado +=v;
+                        // Marca como avisado no carregamento inicial
+                        if (t.id) idsTransacoesAvisadas.add(t.id);
                     }
                     else if (t.tipo==='CREDITO') totalCredito +=v;
                     else if (t.tipo==='DEBITO') totalDebito +=v;
@@ -717,7 +722,8 @@
                 document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
                 document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
 
-                if (temAgendado) {
+                // Avisa apenas no carregamento inicial se houver e ainda não foi avisado
+                if (temAgendado && idsTransacoesAvisadas.size === 0) {
                     tocarAlerta();
                     mostrarModalAvisoAgendado(valorAgendado);
                 }
