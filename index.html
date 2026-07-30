@@ -384,7 +384,6 @@
                 </div>
             </div>
 
-            <!-- Cards com texto original, valor aparece só temporariamente -->
             <div class="cards">
                 <div class="card card-pix">
                     <div class="card-titulo">⚡ Pix</div>
@@ -457,18 +456,17 @@
             setTimeout(() => aviso.style.display = 'none', 5000);
         }
 
-        function formatarMoeda(n) { return `R$ ${n.toFixed(2).replace('.', ',')}`; }
+        function formatarMoeda(n) { return `R$ ${parseFloat(n).toFixed(2).replace('.', ',')}`; }
 
-        // Volta os cards para o texto original
         function resetarCards() {
             document.getElementById('card-pix-valor').textContent = "Aguardando dados...";
             document.getElementById('card-credito-valor').textContent = "Aguardando dados...";
             document.getElementById('card-debito-valor').textContent = "Aguardando dados...";
         }
 
-        // Atualiza resumo e mostra valor temporário nos cards
-        function atualizarPainel() {
-            // Resumo acumula normalmente
+        // Atualiza resumo acumulado e mostra APENAS o valor da última transação nos cards
+        function atualizarPainel(dadosUltimaTransacao = null) {
+            // Resumo continua somando tudo normalmente
             document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
             document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
             document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
@@ -476,14 +474,20 @@
             document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
             document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
 
-            // Mostra valor só temporariamente nos cards
-            document.getElementById('card-pix-valor').textContent = formatarMoeda(totalPix);
-            document.getElementById('card-credito-valor').textContent = formatarMoeda(totalCredito);
-            document.getElementById('card-debito-valor').textContent = formatarMoeda(totalDebito);
+            // Cards mostram SÓ o valor da transação que chegou agora
+            if (dadosUltimaTransacao) {
+                const valor = parseFloat(dadosUltimaTransacao.valor) || 0;
+                if (dadosUltimaTransacao.tipo === 'PIX') {
+                    document.getElementById('card-pix-valor').textContent = formatarMoeda(valor);
+                } else if (dadosUltimaTransacao.tipo === 'CREDITO') {
+                    document.getElementById('card-credito-valor').textContent = formatarMoeda(valor);
+                } else if (dadosUltimaTransacao.tipo === 'DEBITO') {
+                    document.getElementById('card-debito-valor').textContent = formatarMoeda(valor);
+                }
 
-            // Limpa o tempo anterior e volta ao texto original após 10 segundos
-            clearTimeout(temporizadorCards);
-            temporizadorCards = setTimeout(resetarCards, 10000);
+                clearTimeout(temporizadorCards);
+                temporizadorCards = setTimeout(resetarCards, 10000);
+            }
         }
 
         function iniciarTempoReal() {
@@ -495,14 +499,14 @@
                 .on(
                     'postgres_changes',
                     {
-                        event: '*',
+                        event: 'INSERT', // Só pega transações NOVAS
                         schema: 'public',
                         table: 'transacoes_gerais',
                         filter: `cliente_id=eq.${CLIENTE_ID}`
                     },
-                    async () => {
+                    async (mudanca) => {
                         await carregarDadosTransacoes();
-                        atualizarPainel();
+                        atualizarPainel(mudanca.new); // Envia só a transação nova para os cards
                     }
                 )
                 .subscribe();
@@ -629,7 +633,6 @@
                 document.getElementById('mostra-email').textContent = user.email || '';
                 document.getElementById('tela-acesso').style.display = 'none';
                 document.getElementById('tela-painel').style.display = 'block';
-                // Ao entrar, reseta os cards e carrega o resumo
                 resetarCards();
                 await carregarDadosTransacoes();
                 iniciarTempoReal();
@@ -648,7 +651,7 @@
                     else if (t.tipo==='DEBITO') totalDebito +=v;
                     else if (t.tipo==='DINHEIRO') totalDinheiroFisico +=v;
                 });
-                // Apenas atualiza o resumo, não mostra valor nos cards no carregamento inicial
+                // Apenas atualiza o resumo, mantém cards em "Aguardando dados..."
                 document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
                 document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
                 document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
