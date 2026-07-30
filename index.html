@@ -230,6 +230,7 @@
             color: #1f2937;
             width: 100%;
         }
+        .card-conteudo { font-size: 1rem; color: #4b5563; }
 
         .erro-tela { background: #fef2f2; color: #dc2626; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 16px; display: none; border: 1px solid #fecaca; }
 
@@ -383,18 +384,19 @@
                 </div>
             </div>
 
+            <!-- Cards com texto original, valor aparece só temporariamente -->
             <div class="cards">
                 <div class="card card-pix">
                     <div class="card-titulo">⚡ Pix</div>
-                    <div>Aguardando dados...</div>
+                    <div id="card-pix-valor" class="card-conteudo">Aguardando dados...</div>
                 </div>
                 <div class="card card-credito">
                     <div class="card-titulo">💳 Crédito</div>
-                    <div>Aguardando dados...</div>
+                    <div id="card-credito-valor" class="card-conteudo">Aguardando dados...</div>
                 </div>
                 <div class="card card-debito">
                     <div class="card-titulo">🏧 Débito</div>
-                    <div>Aguardando dados...</div>
+                    <div id="card-debito-valor" class="card-conteudo">Aguardando dados...</div>
                 </div>                       
             </div>
 
@@ -417,6 +419,7 @@
         let CLIENTE_ID = null;
         let totalPix = 0, totalCredito = 0, totalDebito = 0, totalDinheiroFisico = 0;
         let inscricaoTempoReal = null;
+        let temporizadorCards = null;
 
         function abrirModalRelatorio() { document.getElementById('modalRelatorio').classList.add('aberto'); }
         function fecharModalRelatorio() { document.getElementById('modalRelatorio').classList.remove('aberto'); }
@@ -456,25 +459,33 @@
 
         function formatarMoeda(n) { return `R$ ${n.toFixed(2).replace('.', ',')}`; }
 
-        // ✅ Atualiza resumo e chama atualização dos cards
+        // Volta os cards para o texto original
+        function resetarCards() {
+            document.getElementById('card-pix-valor').textContent = "Aguardando dados...";
+            document.getElementById('card-credito-valor').textContent = "Aguardando dados...";
+            document.getElementById('card-debito-valor').textContent = "Aguardando dados...";
+        }
+
+        // Atualiza resumo e mostra valor temporário nos cards
         function atualizarPainel() {
+            // Resumo acumula normalmente
             document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
             document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
             document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
             document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
             document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
             document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
-            atualizarCards();
+
+            // Mostra valor só temporariamente nos cards
+            document.getElementById('card-pix-valor').textContent = formatarMoeda(totalPix);
+            document.getElementById('card-credito-valor').textContent = formatarMoeda(totalCredito);
+            document.getElementById('card-debito-valor').textContent = formatarMoeda(totalDebito);
+
+            // Limpa o tempo anterior e volta ao texto original após 10 segundos
+            clearTimeout(temporizadorCards);
+            temporizadorCards = setTimeout(resetarCards, 10000);
         }
 
-        // ✅ Atualiza os cards com os valores somados
-        function atualizarCards() {
-            document.querySelector('.card-pix div:nth-child(2)').textContent = formatarMoeda(totalPix);
-            document.querySelector('.card-credito div:nth-child(2)').textContent = formatarMoeda(totalCredito);
-            document.querySelector('.card-debito div:nth-child(2)').textContent = formatarMoeda(totalDebito);
-        }
-
-        // ✅ Sistema de tempo real configurado
         function iniciarTempoReal() {
             if (!CLIENTE_ID) return;
             if (inscricaoTempoReal) inscricaoTempoReal.unsubscribe();
@@ -491,6 +502,7 @@
                     },
                     async () => {
                         await carregarDadosTransacoes();
+                        atualizarPainel();
                     }
                 )
                 .subscribe();
@@ -617,12 +629,13 @@
                 document.getElementById('mostra-email').textContent = user.email || '';
                 document.getElementById('tela-acesso').style.display = 'none';
                 document.getElementById('tela-painel').style.display = 'block';
+                // Ao entrar, reseta os cards e carrega o resumo
+                resetarCards();
                 await carregarDadosTransacoes();
                 iniciarTempoReal();
             } catch (e) { mostrarErro(e.message); }
         }
 
-        // ✅ Carrega dados do Supabase e soma corretamente
         async function carregarDadosTransacoes() {
             if (!CLIENTE_ID) return;
             try {
@@ -635,7 +648,13 @@
                     else if (t.tipo==='DEBITO') totalDebito +=v;
                     else if (t.tipo==='DINHEIRO') totalDinheiroFisico +=v;
                 });
-                atualizarPainel();
+                // Apenas atualiza o resumo, não mostra valor nos cards no carregamento inicial
+                document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
+                document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
+                document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
+                document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
+                document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
+                document.getElementById('total-geral-conf').textContent = formatarMoeda(totalPix + totalCredito + totalDebito + totalDinheiroFisico);
             } catch (e) { console.error(e); }
         }
 
@@ -683,7 +702,11 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const {data:{user}} = await _supabase.auth.getUser();
-            if (user) { usuarioLogado=user; await carregarDadosUsuario(); }
+            if (user) { 
+                usuarioLogado=user; 
+                resetarCards();
+                await carregarDadosUsuario(); 
+            }
         });
     </script>
 </body>
