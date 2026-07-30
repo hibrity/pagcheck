@@ -177,7 +177,7 @@
         .resumo-linha { display: flex; gap: 5px; align-items: center; white-space: nowrap; }
         .resumo-linha span:first-child { color: #4b5563; }
         .resumo-valor-conf { font-weight: 600; color: #166534; }
-        .resumo-valor-agen { font-weight: 500; color: #f59e0b; }
+        .resumo-valor-agen { font-weight: 500; color: #f59e0b; display: none; }
         .resumo-total { font-weight: 700; color: #1f2937; font-size: 1rem; }
 
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; padding: 15px; }
@@ -231,11 +231,6 @@
         .card.destaque-novo.card-debito {
             box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.25);
             background-color: #f0fdf4;
-        }
-        /* Alerta para Pix Agendado */
-        .fundo-alerta-agendado {
-            background-color: #fffbeb !important;
-            transition: background-color 0.5s ease;
         }
         .card-titulo { 
             display: flex; 
@@ -374,6 +369,7 @@
                 </div>
                 <div class="resumo-grade">
                     <div class="resumo-linha"><span>Pix Confirmado:</span><span class="resumo-valor-conf" id="res-pix-conf">R$ 0,00</span></div>
+                    <div class="resumo-linha"><span>Pix Agendado:</span><span class="resumo-valor-agen" id="res-pix-agen">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Crédito:</span><span id="res-credito">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Débito:</span><span id="res-debito">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Dinheiro Físico:</span><span id="res-dinheiro">R$ 0,00</span></div>
@@ -437,7 +433,6 @@
         let inscricaoTempoReal = null;
         let temporizadorCards = null;
 
-        // Alerta sonoro
         function tocarAlerta() {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const tom = audioCtx.createOscillator();
@@ -450,6 +445,20 @@
             vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
             tom.start(audioCtx.currentTime);
             tom.stop(audioCtx.currentTime + 0.4);
+        }
+
+        function mostrarModalAvisoAgendado(valor) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:99999;`;
+            modal.innerHTML = `
+                <div style="background:white;padding:25px;border-radius:10px;max-width:420px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);border-top:5px solid #f59e0b;">
+                    <h3 style="color:#92400e;margin-bottom:15px;font-size:1.2rem;">⚠️ ATENÇÃO - CUIDADO!</h3>
+                    <p style="font-size:1rem;color:#374151;line-height:1.5;">Este valor foi <strong>AGENDADO</strong> e ainda não caiu na conta!</p>
+                    <p style="font-size:1.3rem;font-weight:700;color:#92400e;margin:15px 0;">Valor: ${formatarMoeda(valor)}</p>
+                    <button onclick="this.parentElement.parentElement.remove()" style="width:100%;padding:12px;background:#f59e0b;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;">Entendi</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
 
         function abrirModalRelatorio() { document.getElementById('modalRelatorio').classList.add('aberto'); }
@@ -498,7 +507,6 @@
 
         function atualizarPainel(dadosUltimaTransacao = null) {
             document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
-            document.getElementById('res-pix-agen').textContent = formatarMoeda(0);
             document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
             document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
             document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
@@ -550,9 +558,7 @@
                         atualizarPainel(mudanca.new);
                         if (mudanca.new.tipo === 'PIX' && mudanca.new.status === 'AGENDADO') {
                             tocarAlerta();
-                            document.body.classList.add('fundo-alerta-agendado');
-                            alert(`⚠️ Novo Pix Agendado: ${formatarMoeda(mudanca.new.valor)}`);
-                            setTimeout(() => document.body.classList.remove('fundo-alerta-agendado'), 5000);
+                            mostrarModalAvisoAgendado(parseFloat(mudanca.new.valor)||0);
                         }
                     }
                 )
@@ -704,8 +710,8 @@
                     else if (t.tipo==='DEBITO') totalDebito +=v;
                     else if (t.tipo==='DINHEIRO') totalDinheiroFisico +=v;
                 });
+
                 document.getElementById('res-pix-conf').textContent = formatarMoeda(totalPix);
-                document.getElementById('res-pix-agen').textContent = formatarMoeda(valorAgendado);
                 document.getElementById('res-credito').textContent = formatarMoeda(totalCredito);
                 document.getElementById('res-debito').textContent = formatarMoeda(totalDebito);
                 document.getElementById('res-dinheiro').textContent = formatarMoeda(totalDinheiroFisico);
@@ -713,9 +719,7 @@
 
                 if (temAgendado) {
                     tocarAlerta();
-                    document.body.classList.add('fundo-alerta-agendado');
-                    alert(`⚠️ Há Pix Agendado: ${formatarMoeda(valorAgendado)}`);
-                    setTimeout(() => document.body.classList.remove('fundo-alerta-agendado'), 5000);
+                    mostrarModalAvisoAgendado(valorAgendado);
                 }
             } catch (e) { console.error(e); }
         }
