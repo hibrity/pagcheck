@@ -369,7 +369,6 @@
                 </div>
                 <div class="resumo-grade">
                     <div class="resumo-linha"><span>Pix Confirmado:</span><span class="resumo-valor-conf" id="res-pix-conf">R$ 0,00</span></div>
-                    <!-- PIX AGENDADO TOTALMENTE OCULTO -->
                     <div class="resumo-linha" style="display:none;"><span>Pix Agendado:</span><span class="resumo-valor-agen" id="res-pix-agen">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Crédito:</span><span id="res-credito">R$ 0,00</span></div>
                     <div class="resumo-linha"><span>Débito:</span><span id="res-debito">R$ 0,00</span></div>
@@ -433,7 +432,7 @@
         let totalPix = 0, totalCredito = 0, totalDebito = 0, totalDinheiroFisico = 0;
         let inscricaoTempoReal = null;
         let temporizadorCards = null;
-        const idsTransacoesAvisadas = new Set(); // Controla alerta único por transação
+        const idsTransacoesAvisadas = new Set();
 
         function tocarAlerta() {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -558,11 +557,17 @@
                     async (mudanca) => {
                         await carregarDadosTransacoes();
                         atualizarPainel(mudanca.new);
-                        // ALERTA ÚNICO POR TRANSAÇÃO AGENDADA
-                        if (mudanca.new.tipo === 'PIX' && mudanca.new.status === 'AGENDADO' && mudanca.new.id && !idsTransacoesAvisadas.has(mudanca.new.id)) {
-                            idsTransacoesAvisadas.add(mudanca.new.id);
+
+                        // ✅ AJUSTE APLICADO: garante ID e validação sem falhas
+                        const t = mudanca.new;
+                        const idSeguro = t.id || `tmp_${Date.now()}`;
+                        const ePix = String(t.tipo).toUpperCase().trim() === 'PIX';
+                        const eAgendado = String(t.status).toUpperCase().trim() === 'AGENDADO';
+
+                        if (ePix && eAgendado && !idsTransacoesAvisadas.has(idSeguro)) {
+                            idsTransacoesAvisadas.add(idSeguro);
                             tocarAlerta();
-                            mostrarModalAvisoAgendado(parseFloat(mudanca.new.valor)||0);
+                            mostrarModalAvisoAgendado(parseFloat(t.valor) || 0);
                         }
                     }
                 )
@@ -704,7 +709,6 @@
 
                 (data||[]).forEach(t=>{
                     const v = parseFloat(t.valor)||0;
-                    // SOMA SOMENTE PIX CONFIRMADO - AGENDADO NÃO SOMA EM NENHUM LUGAR
                     if (t.tipo==='PIX' && t.status==='RECEBIDO') totalPix +=v;
                     else if (t.tipo==='PIX' && t.status==='AGENDADO' && t.id) idsTransacoesAvisadas.add(t.id);
                     else if (t.tipo==='CREDITO') totalCredito +=v;
